@@ -17,6 +17,20 @@ export async function validateDistribution(repositoryRoot = root) {
   if (sources.schemaVersion !== 1 || sources.status !== 'draft') errors.push('source lock must be schemaVersion 1 draft');
   const unverified = (sources.sources ?? []).filter((source) => source.verified !== true);
   if (unverified.length === 0) errors.push('draft source lock must retain an explicit unverified entry until release promotion');
+  const base = (sources.sources ?? []).find((source) => source.id === 'devcontainer-base-ubuntu-24.04');
+  const baseFiles = [
+    await readFile(path.join(repositoryRoot, '.devcontainer/Dockerfile'), 'utf8'),
+    await readFile(path.join(repositoryRoot, '.devcontainer/devcontainer.json'), 'utf8'),
+  ];
+  if (!base || !base.reference || baseFiles.some((source) => !source.includes(base.reference))) errors.push('devcontainer files must use the locked base-image reference');
+  if (base?.verified === true && !/sha256:[0-9a-f]{64}$/.test(base.digest ?? '')) errors.push('verified base image must have an immutable digest');
+  const controlPlaneCommit = bundle.controlPlane?.commit;
+  const lockedControlPlane = (sources.sources ?? []).find((source) => source.id === 'control-plane');
+  if (!lockedControlPlane || lockedControlPlane.commit !== controlPlaneCommit) errors.push('workflow bundle and source lock must pin the same Control Plane commit');
+  const consumerWorkflow = await readFile(path.join(repositoryRoot, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8');
+  if (!consumerWorkflow.includes(`@${controlPlaneCommit}`) || !consumerWorkflow.includes(`controller_commit: ${controlPlaneCommit}`)) errors.push('consumer workflow must use the pinned Control Plane commit');
+  const feature = JSON.parse(await readFile(path.join(repositoryRoot, 'features/src/agentic-delivery/devcontainer-feature.json'), 'utf8'));
+  if (feature.options?.controlPlaneCommit?.default !== controlPlaneCommit) errors.push('Dev Container Feature must default to the workflow bundle Control Plane commit');
   const plugin = JSON.parse(await readFile(path.join(repositoryRoot, 'packages/agent-plugin/plugin.json'), 'utf8'));
   if (plugin.schemaVersion !== 1 || plugin.status !== 'draft') errors.push('Agent Plugin manifest must be schemaVersion 1 draft');
   if (errors.length > 0) throw new Error(`distribution validation failed:\n${errors.join('\n')}`);

@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { lstat, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,6 +15,20 @@ export async function validateDistribution(repositoryRoot = root) {
   for (const file of bundle.files ?? []) {
     if (file.target.startsWith('/') || file.target.includes('..')) errors.push(`unsafe target path: ${file.target}`);
     if (!file.source || !file.target) errors.push('bundle entries require source and target');
+    try {
+      const sourceStats = await lstat(path.join(repositoryRoot, file.source));
+      if (!sourceStats.isFile()) errors.push(`bundle source is not a regular file: ${file.source}`);
+    } catch (error) {
+      errors.push(`bundle source cannot be read: ${file.source} (${error.message})`);
+    }
+  }
+  try {
+    const lockSchema = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/consumer-distribution-lock.v1.schema.json'), 'utf8'));
+    if (lockSchema.$schema !== 'https://json-schema.org/draft/2020-12/schema' || lockSchema.title !== 'Agentic Delivery consumer distribution lock v1') {
+      errors.push('consumer distribution lock schema is not self-identifying');
+    }
+  } catch (error) {
+    errors.push(`consumer distribution lock schema cannot be read: ${error.message}`);
   }
   const sources = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/sources.lock.json'), 'utf8'));
   if (sources.schemaVersion !== 1 || sources.status !== 'draft') errors.push('source lock must be schemaVersion 1 draft');

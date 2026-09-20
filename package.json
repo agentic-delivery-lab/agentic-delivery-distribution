@@ -9,6 +9,8 @@
   },
   "scripts": {
     "distribution:check": "node tools/validate-distribution.mjs",
+    "bootstrap:plan": "node bootstrap/src/bootstrap.mjs --plan",
+    "bootstrap:apply": "node bootstrap/src/bootstrap.mjs --apply",
     "test": "node --test \"tests/**/*.test.mjs\""
   }
 }

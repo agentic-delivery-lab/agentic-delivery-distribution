@@ -20,3 +20,16 @@ CI/CD.
 
 The local repository is a new-history scaffold. Publication and organization
 installation are separate operator actions.
+
+Bootstrap is explicit and local:
+
+```text
+pnpm bootstrap:plan    # inspect the three managed files; writes nothing
+pnpm bootstrap:apply   # create missing files and provenance lock
+pnpm bootstrap:apply -- --force  # overwrite reviewed local conflicts
+```
+
+The command reads only paths declared in `manifests/workflow-bundle.json`.
+It preflights every target before writing, refuses symbolic-link targets, and
+writes `.agentic-delivery/distribution.lock.json` with the bundle pins and
+source SHA-256 values. A conflict is never silently overwritten.

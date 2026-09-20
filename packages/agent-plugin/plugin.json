@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "agentic-delivery",
+  "version": "0.1.0-draft.1",
+  "status": "draft",
+  "generatedFrom": {
+    "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
+    "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.1",
+    "controlPlaneCommit": "b160ae8826330ce280c41108e9459550c399e8c6"
+  },
+  "projections": {
+    "agents": "agents/",
+    "skills": "skills/",
+    "automations": "automations/",
+    "hooks": "hooks/"
+  }
+}

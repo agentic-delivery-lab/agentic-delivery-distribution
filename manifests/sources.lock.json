@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "sources": [
+    {
+      "id": "devcontainer-base-ubuntu-24.04",
+      "kind": "container-image",
+      "reference": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+      "digest": null,
+      "verified": false
+    },
+    {
+      "id": "control-plane",
+      "kind": "git",
+      "repository": "agentic-delivery-lab/agentic-delivery",
+      "commit": "b160ae8826330ce280c41108e9459550c399e8c6",
+      "verified": true
+    }
+  ]
+}

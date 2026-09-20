@@ -1,0 +1,27 @@
+{
+  "$schema": "./workflow-bundle.schema.json",
+  "schemaVersion": 1,
+  "bundleVersion": "0.1.0-draft.1",
+  "status": "draft",
+  "controlPlane": {
+    "repository": "agentic-delivery-lab/agentic-delivery",
+    "commit": "b160ae8826330ce280c41108e9459550c399e8c6",
+    "contracts": {
+      "eventEnvelope": 1,
+      "lifecycle": "1.0.0",
+      "stateMachine": "1.0.0"
+    }
+  },
+  "files": [
+    {
+      "source": "bootstrap/templates/consumer/AGENTS.md",
+      "target": "AGENTS.md",
+      "mode": "managed"
+    },
+    {
+      "source": "bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml",
+      "target": ".github/workflows/agentic-delivery-quality.yml",
+      "mode": "managed"
+    }
+  ]
+}

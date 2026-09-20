@@ -1,0 +1,13 @@
+{
+  "name": "Agentic Delivery consumer environment",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {},
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "agenticDelivery.distributionManifest": "manifests/workflow-bundle.json"
+      }
+    }
+  },
+  "postCreateCommand": "node bootstrap/src/bootstrap.mjs --check"
+}

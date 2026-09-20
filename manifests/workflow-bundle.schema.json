@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentic-delivery-lab/agentic-delivery-distribution/blob/main/manifests/workflow-bundle.schema.json",
+  "title": "Agentic Delivery workflow bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "bundleVersion", "status", "controlPlane", "files"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "bundleVersion": { "type": "string" },
+    "status": { "enum": ["draft", "released", "withdrawn"] },
+    "controlPlane": { "type": "object", "required": ["repository", "commit", "contracts"], "additionalProperties": false, "properties": { "repository": { "type": "string" }, "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }, "contracts": { "type": "object" } } },
+    "files": { "type": "array", "items": { "type": "object", "required": ["source", "target", "mode"], "additionalProperties": false, "properties": { "source": { "type": "string" }, "target": { "type": "string" }, "mode": { "enum": ["managed", "generated"] } } } }
+  }
+}

@@ -1,0 +1,16 @@
+name: agentic-delivery-quality
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  control-plane-contract:
+    uses: agentic-delivery-lab/agentic-delivery/.github/workflows/codex-delivery.yml@b160ae8826330ce280c41108e9459550c399e8c6
+    with:
+      issue: '0'
+      route: validate
+      participant_mode: shadow
+      controller_commit: b160ae8826330ce280c41108e9459550c399e8c6

@@ -1,0 +1,14 @@
+{
+  "id": "agentic-delivery",
+  "version": "0.1.0",
+  "name": "Agentic Delivery consumer integration",
+  "description": "Installs only the approved thin Agentic Delivery bootstrap integration.",
+  "documentationURL": "https://github.com/agentic-delivery-lab/agentic-delivery-distribution",
+  "options": {
+    "controlPlaneCommit": {
+      "type": "string",
+      "default": "b160ae8826330ce280c41108e9459550c399e8c6",
+      "description": "Immutable Control Plane commit used by the consumer caller."
+    }
+  }
+}

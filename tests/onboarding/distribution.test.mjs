@@ -23,11 +23,11 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
 
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
   const workflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8'));
-  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@6b7b464ba04eab82116e86c41824b61eb355e2c9'));
+  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@3db6b25f5e7a5eb41ba248f2a1396714d1e19150'));
   assert.ok(workflow.includes('controller_commit: b160ae8826330ce280c41108e9459550c399e8c6'));
   assert.ok(!workflow.includes('secrets:'));
   const architectureWorkflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8'));
-  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@6b7b464ba04eab82116e86c41824b61eb355e2c9'));
+  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@3db6b25f5e7a5eb41ba248f2a1396714d1e19150'));
   assert.ok(architectureWorkflow.includes('architecture_commit: 6ba3c1bfd7f2709d5070cb5c8155e2dea984f5b4'));
   assert.ok(architectureWorkflow.includes("affected_identifiers: '[\"urn:agentic-delivery:architecture:authority\"]'"));
 });

@@ -17,3 +17,10 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
   assert.equal(manifest.controlPlane.repository, 'agentic-delivery-lab/agentic-delivery');
   assert.equal(manifest.files.every((file) => file.mode === 'managed'), true);
 });
+
+test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
+  const workflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8'));
+  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@b160ae8826330ce280c41108e9459550c399e8c6'));
+  assert.ok(workflow.includes('controller_commit: b160ae8826330ce280c41108e9459550c399e8c6'));
+  assert.ok(!workflow.includes('secrets:'));
+});

@@ -10,7 +10,7 @@
     "bundleVersion": { "type": "string" },
     "status": { "enum": ["draft", "released", "withdrawn"] },
     "controlPlane": { "type": "object", "required": ["repository", "commit", "contracts"], "additionalProperties": false, "properties": { "repository": { "type": "string" }, "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }, "contracts": { "type": "object" } } },
-    "architecture": { "type": "object", "required": ["repository", "commit"], "additionalProperties": false, "properties": { "repository": { "type": "string" }, "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" } } },
+    "architecture": { "type": "object", "required": ["repository", "commit", "affectedIdentifiers"], "additionalProperties": false, "properties": { "repository": { "type": "string" }, "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }, "affectedIdentifiers": { "type": "array", "minItems": 1, "items": { "type": "string" } } } },
     "workflowSource": { "type": "object", "required": ["repository", "commit"], "additionalProperties": false, "properties": { "repository": { "type": "string" }, "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" } } },
     "files": { "type": "array", "items": { "type": "object", "required": ["source", "target", "mode"], "additionalProperties": false, "properties": { "source": { "type": "string" }, "target": { "type": "string" }, "mode": { "enum": ["managed", "generated"] } } } }
   }

@@ -10,6 +10,7 @@ export async function validateDistribution(repositoryRoot = root) {
   if (bundle.schemaVersion !== 1 || bundle.status !== 'draft') errors.push('workflow bundle must be schemaVersion 1 draft');
   if (!/^[0-9a-f]{40}$/.test(bundle.controlPlane?.commit ?? '')) errors.push('control-plane commit must be immutable');
   if (!/^[0-9a-f]{40}$/.test(bundle.architecture?.commit ?? '')) errors.push('architecture commit must be immutable');
+  if (!Array.isArray(bundle.architecture?.affectedIdentifiers) || bundle.architecture.affectedIdentifiers.length === 0 || bundle.architecture.affectedIdentifiers.some((id) => typeof id !== 'string' || id.length === 0)) errors.push('architecture affected identifiers are required');
   if (!/^[0-9a-f]{40}$/.test(bundle.workflowSource?.commit ?? '')) errors.push('workflow source commit must be immutable');
   for (const file of bundle.files ?? []) {
     if (file.target.startsWith('/') || file.target.includes('..')) errors.push(`unsafe target path: ${file.target}`);
@@ -36,7 +37,7 @@ export async function validateDistribution(repositoryRoot = root) {
   const consumerWorkflow = await readFile(path.join(repositoryRoot, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8');
   if (!consumerWorkflow.includes(`@${bundle.workflowSource?.commit}`) || !consumerWorkflow.includes(`controller_commit: ${controlPlaneCommit}`)) errors.push('consumer workflow must separate workflow source and Control Plane pins');
   const architectureWorkflow = await readFile(path.join(repositoryRoot, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8');
-  if (!architectureWorkflow.includes(`@${bundle.workflowSource?.commit}`) || !architectureWorkflow.includes(`architecture_commit: ${bundle.architecture?.commit}`)) errors.push('architecture review workflow must pin workflow source and Architecture separately');
+  if (!architectureWorkflow.includes(`@${bundle.workflowSource?.commit}`) || !architectureWorkflow.includes(`architecture_commit: ${bundle.architecture?.commit}`) || !architectureWorkflow.includes(`affected_identifiers: '${JSON.stringify(bundle.architecture?.affectedIdentifiers)}'`)) errors.push('architecture review workflow must pin workflow source, Architecture, and affected identifiers separately');
   const feature = JSON.parse(await readFile(path.join(repositoryRoot, 'features/src/agentic-delivery/devcontainer-feature.json'), 'utf8'));
   if (feature.options?.controlPlaneCommit?.default !== controlPlaneCommit) errors.push('Dev Container Feature must default to the workflow bundle Control Plane commit');
   const plugin = JSON.parse(await readFile(path.join(repositoryRoot, 'packages/agent-plugin/plugin.json'), 'utf8'));

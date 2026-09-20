@@ -1,0 +1,15 @@
+name: agentic-delivery-architecture-review
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  architecture:
+    uses: agentic-delivery-lab/agentic-delivery/.github/workflows/agentic-delivery-architecture-review.yml@6b7b464ba04eab82116e86c41824b61eb355e2c9
+    with:
+      architecture_commit: c9b26ed647777426b3518401f6d22ce77a1f7150

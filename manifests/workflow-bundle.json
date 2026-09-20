@@ -12,9 +12,13 @@
       "stateMachine": "1.0.0"
     }
   },
+  "architecture": {
+    "repository": "agentic-delivery-lab/agentic-delivery-architecture",
+    "commit": "c9b26ed647777426b3518401f6d22ce77a1f7150"
+  },
   "workflowSource": {
     "repository": "agentic-delivery-lab/agentic-delivery",
-    "commit": "0484504c383bde1187268b494e3b94b4984a8ebd"
+    "commit": "6b7b464ba04eab82116e86c41824b61eb355e2c9"
   },
   "files": [
     {
@@ -25,6 +29,11 @@
     {
       "source": "bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml",
       "target": ".github/workflows/agentic-delivery-quality.yml",
+      "mode": "managed"
+    },
+    {
+      "source": "bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml",
+      "target": ".github/workflows/agentic-delivery-architecture-review.yml",
       "mode": "managed"
     }
   ]

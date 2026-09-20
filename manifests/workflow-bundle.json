@@ -12,6 +12,10 @@
       "stateMachine": "1.0.0"
     }
   },
+  "workflowSource": {
+    "repository": "agentic-delivery-lab/agentic-delivery",
+    "commit": "e7e98ae73983e50e8eebd02f07cd90c6c574b5bb"
+  },
   "files": [
     {
       "source": "bootstrap/templates/consumer/AGENTS.md",

@@ -4,12 +4,13 @@
   "title": "Agentic Delivery workflow bundle v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "bundleVersion", "status", "controlPlane", "files"],
+  "required": ["schemaVersion", "bundleVersion", "status", "controlPlane", "workflowSource", "files"],
   "properties": {
     "schemaVersion": { "const": 1 },
     "bundleVersion": { "type": "string" },
     "status": { "enum": ["draft", "released", "withdrawn"] },
     "controlPlane": { "type": "object", "required": ["repository", "commit", "contracts"], "additionalProperties": false, "properties": { "repository": { "type": "string" }, "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }, "contracts": { "type": "object" } } },
+    "workflowSource": { "type": "object", "required": ["repository", "commit"], "additionalProperties": false, "properties": { "repository": { "type": "string" }, "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" } } },
     "files": { "type": "array", "items": { "type": "object", "required": ["source", "target", "mode"], "additionalProperties": false, "properties": { "source": { "type": "string" }, "target": { "type": "string" }, "mode": { "enum": ["managed", "generated"] } } } }
   }
 }

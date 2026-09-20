@@ -15,6 +15,13 @@
       "repository": "agentic-delivery-lab/agentic-delivery",
       "commit": "b160ae8826330ce280c41108e9459550c399e8c6",
       "verified": true
+    },
+    {
+      "id": "distribution-workflow",
+      "kind": "git",
+      "repository": "agentic-delivery-lab/agentic-delivery",
+      "commit": "e7e98ae73983e50e8eebd02f07cd90c6c574b5bb",
+      "verified": true
     }
   ]
 }

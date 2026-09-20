@@ -12,6 +12,6 @@ permissions:
 
 jobs:
   control-plane-contract:
-    uses: agentic-delivery-lab/agentic-delivery/.github/workflows/agentic-delivery-quality.yml@b160ae8826330ce280c41108e9459550c399e8c6
+    uses: agentic-delivery-lab/agentic-delivery/.github/workflows/agentic-delivery-quality.yml@e7e98ae73983e50e8eebd02f07cd90c6c574b5bb
     with:
       controller_commit: b160ae8826330ce280c41108e9459550c399e8c6

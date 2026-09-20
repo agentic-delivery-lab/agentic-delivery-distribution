@@ -42,6 +42,8 @@ export async function validateDistribution(repositoryRoot = root) {
   if (feature.options?.controlPlaneCommit?.default !== controlPlaneCommit) errors.push('Dev Container Feature must default to the workflow bundle Control Plane commit');
   const plugin = JSON.parse(await readFile(path.join(repositoryRoot, 'packages/agent-plugin/plugin.json'), 'utf8'));
   if (plugin.schemaVersion !== 1 || plugin.status !== 'draft') errors.push('Agent Plugin manifest must be schemaVersion 1 draft');
+  if (!/^[0-9a-f]{40}$/.test(plugin.generatedFrom?.primitiveSourceCommit ?? '')) errors.push('Agent Plugin must pin the Primitive source commit');
+  if (!/^[0-9a-f]{40}$/.test(plugin.generatedFrom?.architectureCommit ?? '')) errors.push('Agent Plugin must pin the Architecture commit');
   if (errors.length > 0) throw new Error(`distribution validation failed:\n${errors.join('\n')}`);
   return { files: bundle.files.length, sources: sources.sources.length };
 }

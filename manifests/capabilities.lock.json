@@ -3,7 +3,7 @@
   "status": "draft",
   "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
   "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.1",
-  "sourceCommit": "e83b17112cd5b5f6f790bcd679d185d9ec367368",
+  "sourceCommit": "78cceeda1c6d7ceeddd4cf3f392836284a0216f8",
   "contentSha256": null,
   "capabilityPolicyVersion": "0.1.0"
 }

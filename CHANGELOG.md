@@ -4,6 +4,10 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.9`, pinning Control Plane
+  `0.2.0-draft.24` at `1c33a16b9a5a7e6480410c69bdda32648126eabc`; draft8
+  remains the rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.8`, pinning Control Plane
   `0.2.0-draft.23` and feature defaults to
   `30197d5c8731ea6e682ae4de5e629b964e278aab` while retaining the separately

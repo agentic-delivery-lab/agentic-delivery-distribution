@@ -14,7 +14,7 @@ test('distribution bundle is thin, pinned, and draft until source promotion', as
   const result = await validateDistribution(root);
   assert.deepEqual(result, { files: 3, sources: 5 });
   const manifest = JSON.parse(await readFile(path.join(root, 'manifests/workflow-bundle.json'), 'utf8'));
-  assert.equal(manifest.bundleVersion, '0.1.0-draft.12');
+  assert.equal(manifest.bundleVersion, '0.1.0-draft.13');
 });
 
 test('bootstrap manifest is idempotent-contract input, not a control plane', async () => {
@@ -35,7 +35,7 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
   const workflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8'));
   assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4'));
-  assert.ok(workflow.includes('controller_commit: 81fa558aad0f998876bc29871080f2380b2c8582'));
+  assert.ok(workflow.includes('controller_commit: b52464571e1c0d3adfa5986bd54668d3c7da4a13'));
   assert.ok(!workflow.includes('secrets:'));
   assert.match(workflow, /jobs:\n  control-plane-contract:\n    uses:/);
   assert.match(workflow, /    with:\n      controller_commit:/);

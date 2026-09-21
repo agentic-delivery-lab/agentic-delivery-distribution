@@ -4,6 +4,10 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.13`, pinning the Control Plane
+  release at `b52464571e1c0d3adfa5986bd54668d3c7da4a13` so consumers receive
+  the commit-exact dependency digest validation.
+
 - The draft bundle advances to `0.1.0-draft.12`, pinning Architecture draft
   `0.1.0-draft.6` at `5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b` and its
   changelog-inclusive digest; draft11 remains the explicit rollback bundle.

@@ -6,11 +6,11 @@
   "generatedFrom": {
     "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
     "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.4",
-    "primitiveSourceCommit": "13acf15d7d2c5ed12b9158d57ff45fcce93d1a06",
+    "primitiveSourceCommit": "51e94992c5f39c59046f752e0cf6cff2ed3fff32",
     "primitiveContentSha256": "36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0",
     "architectureCommit": "61b2285334b5cff4ae2dba7875b132ad2a4a8502",
     "architectureContentSha256": "8a5143f2a09e5324cf8fcb5cc9652a0c62b5562371c29bc869a6536aeab4f6d3",
-    "controlPlaneCommit": "d34d37170c8bfaf944ee0a2bb7b52aac145febf4"
+    "controlPlaneCommit": "02b742c86f77700e8c787ae17f31959d22bbdf2e"
   },
   "projections": {
     "agents": "agents/",

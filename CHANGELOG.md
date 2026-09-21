@@ -4,6 +4,10 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.5`, pinning Control Plane
+  `0.2.0-draft.20` at `213036f87776dcf75e349355ff7983ded476c42e` and workflow
+  source `c3bf78d51836be737eb069b4408f7b16f21c0877`.
+
 - The draft bundle advances to `0.1.0-draft.4`, pinning Control Plane
   `0.2.0-draft.19` at `02b742c86f77700e8c787ae17f31959d22bbdf2e`, the
   acyclic Primitive release snapshot at `51e94992c5f39c59046f752e0cf6cff2ed3fff32`,

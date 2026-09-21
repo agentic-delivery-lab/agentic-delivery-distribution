@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft consumer bundle now pins Control Plane release commit
+  `02b2727c582fc181a8622e86e0ed87b2e81c98f3` and workflow source commit
+  `52e7a2092a1e7807ee091264a3dbbe97b8764593`, carrying downstream identity
+  acceptance evidence through API, git, pull-request, and evidence projections.
+
 - The draft consumer bundle now pins Control Plane release `0.2.0-draft.12`
   at `93583d371818045a9ae694b97e0cf90a4fae8956`; the workflow source pins
   runtime commit `3ea621d64507c0ef187181a487e5f8ff190e5aa3` and includes the

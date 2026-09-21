@@ -1,7 +1,7 @@
 {
   "$schema": "./workflow-bundle.schema.json",
   "schemaVersion": 1,
-  "bundleVersion": "0.1.0-draft.9",
+  "bundleVersion": "0.1.0-draft.10",
   "status": "draft",
   "controlPlane": {
     "repository": "agentic-delivery-lab/agentic-delivery",

@@ -4,6 +4,14 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.10`; its generated reusable
+  workflow callers now have valid GitHub Actions YAML structure and a
+  deterministic indentation check.
+
+- Corrected the generated consumer reusable-workflow YAML indentation and
+  added structural validation so bootstrap output is accepted by GitHub
+  Actions rather than only by text-based pin checks.
+
 - The draft bundle advances to `0.1.0-draft.9`, pinning Control Plane
   `0.2.0-draft.24` at `1c33a16b9a5a7e6480410c69bdda32648126eabc`; draft8
   remains the rollback bundle.

@@ -13,6 +13,8 @@ const root = path.resolve(import.meta.dirname, '../..');
 test('distribution bundle is thin, pinned, and draft until source promotion', async () => {
   const result = await validateDistribution(root);
   assert.deepEqual(result, { files: 3, sources: 5 });
+  const manifest = JSON.parse(await readFile(path.join(root, 'manifests/workflow-bundle.json'), 'utf8'));
+  assert.equal(manifest.bundleVersion, '0.1.0-draft.10');
 });
 
 test('bootstrap manifest is idempotent-contract input, not a control plane', async () => {
@@ -35,10 +37,14 @@ test('consumer workflow delegates only to the secret-free pinned contract workfl
   assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4'));
   assert.ok(workflow.includes('controller_commit: 1c33a16b9a5a7e6480410c69bdda32648126eabc'));
   assert.ok(!workflow.includes('secrets:'));
+  assert.match(workflow, /jobs:\n  control-plane-contract:\n    uses:/);
+  assert.match(workflow, /    with:\n      controller_commit:/);
   const architectureWorkflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8'));
   assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4'));
   assert.ok(architectureWorkflow.includes('architecture_commit: 61b2285334b5cff4ae2dba7875b132ad2a4a8502'));
   assert.ok(architectureWorkflow.includes("affected_identifiers: '[\"urn:agentic-delivery:architecture:authority\"]'"));
+  assert.match(architectureWorkflow, /jobs:\n  architecture:\n    uses:/);
+  assert.match(architectureWorkflow, /    with:\n      architecture_commit:/);
 });
 
 test('bootstrap projects only declared files, records provenance, and is idempotent', async (t) => {

@@ -13,28 +13,28 @@
       "id": "control-plane",
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery",
-      "commit": "9e4ca88eb69a4df69067162d0fbc7100bd6cf691",
+      "commit": "d34d37170c8bfaf944ee0a2bb7b52aac145febf4",
       "verified": true
     },
     {
       "id": "architecture",
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery-architecture",
-      "commit": "d4714c9489fb14824ef0967903d34a73c3e437fb",
+      "commit": "61b2285334b5cff4ae2dba7875b132ad2a4a8502",
       "verified": true
     },
     {
       "id": "primitives",
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery-primitives",
-      "commit": "8d99a4a7a7240a02090ab2ac81cdb7676b8a42ad",
+      "commit": "13acf15d7d2c5ed12b9158d57ff45fcce93d1a06",
       "verified": true
     },
     {
       "id": "distribution-workflow",
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery",
-      "commit": "267484a7b2f1a232ce44951e70042981dad20301",
+      "commit": "02b742c004a805ae6cddc8b27e18b0641e85b763",
       "verified": true
     }
   ]

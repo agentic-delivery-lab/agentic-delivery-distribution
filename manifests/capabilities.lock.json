@@ -3,8 +3,8 @@
   "schemaVersion": 1,
   "status": "draft",
   "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
-  "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.3",
-  "sourceCommit": "8d99a4a7a7240a02090ab2ac81cdb7676b8a42ad",
+  "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.4",
+  "sourceCommit": "13acf15d7d2c5ed12b9158d57ff45fcce93d1a06",
   "contentSha256": "36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0",
   "capabilityPolicyVersion": "0.1.0"
 }

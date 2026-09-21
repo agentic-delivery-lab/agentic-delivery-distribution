@@ -19,25 +19,25 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
   const manifest = await validateBootstrapManifest(root);
   assert.equal(manifest.controlPlane.repository, 'agentic-delivery-lab/agentic-delivery');
   assert.equal(manifest.architecture.repository, 'agentic-delivery-lab/agentic-delivery-architecture');
-  assert.equal(manifest.architecture.contentSha256, '0afe23f5dcf6a250940112d979e013fdc052a6372c41518aa757402d69099484');
+  assert.equal(manifest.architecture.contentSha256, '8a5143f2a09e5324cf8fcb5cc9652a0c62b5562371c29bc869a6536aeab4f6d3');
   assert.deepEqual(manifest.architecture.affectedIdentifiers, ['urn:agentic-delivery:architecture:authority']);
   assert.notEqual(manifest.workflowSource.commit, manifest.controlPlane.commit);
   assert.equal(manifest.files.every((file) => file.mode === 'managed'), true);
   const plugin = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8')));
-  assert.equal(plugin.generatedFrom.primitiveSourceCommit, '8d99a4a7a7240a02090ab2ac81cdb7676b8a42ad');
+  assert.equal(plugin.generatedFrom.primitiveSourceCommit, '13acf15d7d2c5ed12b9158d57ff45fcce93d1a06');
   assert.equal(plugin.generatedFrom.primitiveContentSha256, '36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0');
-  assert.equal(plugin.generatedFrom.architectureCommit, 'd4714c9489fb14824ef0967903d34a73c3e437fb');
-  assert.equal(plugin.generatedFrom.architectureContentSha256, '0afe23f5dcf6a250940112d979e013fdc052a6372c41518aa757402d69099484');
+  assert.equal(plugin.generatedFrom.architectureCommit, '61b2285334b5cff4ae2dba7875b132ad2a4a8502');
+  assert.equal(plugin.generatedFrom.architectureContentSha256, '8a5143f2a09e5324cf8fcb5cc9652a0c62b5562371c29bc869a6536aeab4f6d3');
 });
 
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
   const workflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8'));
-  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@267484a7b2f1a232ce44951e70042981dad20301'));
-  assert.ok(workflow.includes('controller_commit: 9e4ca88eb69a4df69067162d0fbc7100bd6cf691'));
+  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@02b742c004a805ae6cddc8b27e18b0641e85b763'));
+  assert.ok(workflow.includes('controller_commit: d34d37170c8bfaf944ee0a2bb7b52aac145febf4'));
   assert.ok(!workflow.includes('secrets:'));
   const architectureWorkflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8'));
-  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@267484a7b2f1a232ce44951e70042981dad20301'));
-  assert.ok(architectureWorkflow.includes('architecture_commit: d4714c9489fb14824ef0967903d34a73c3e437fb'));
+  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@02b742c004a805ae6cddc8b27e18b0641e85b763'));
+  assert.ok(architectureWorkflow.includes('architecture_commit: 61b2285334b5cff4ae2dba7875b132ad2a4a8502'));
   assert.ok(architectureWorkflow.includes("affected_identifiers: '[\"urn:agentic-delivery:architecture:authority\"]'"));
 });
 
@@ -55,7 +55,7 @@ test('bootstrap projects only declared files, records provenance, and is idempot
   assert.match(lock.$schema, /consumer-distribution-lock\.v1\.schema\.json$/);
   assert.equal(lock.schemaVersion, 1);
   assert.equal(lock.files.length, 3);
-  assert.equal(lock.architecture.contentSha256, '0afe23f5dcf6a250940112d979e013fdc052a6372c41518aa757402d69099484');
+  assert.equal(lock.architecture.contentSha256, '8a5143f2a09e5324cf8fcb5cc9652a0c62b5562371c29bc869a6536aeab4f6d3');
   const second = await applyBootstrap({ distributionRoot: root, targetRoot });
   assert.ok(second.entries.every((entry) => entry.action === 'unchanged'));
 });

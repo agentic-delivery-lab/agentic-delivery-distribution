@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-control_plane_commit="${CONTROLPLANECOMMIT:-4a52effdf11c38dace441b5ec7222bae4fdb92b4}"
+control_plane_commit="${CONTROLPLANECOMMIT:-564a35fd798e75800a3bf15223afb8bd87d59581}"
 if [[ ! "$control_plane_commit" =~ ^[0-9a-f]{40}$ ]]; then
   echo "control-plane commit must be a 40-character immutable SHA" >&2
   exit 1

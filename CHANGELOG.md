@@ -4,6 +4,13 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.11`, pinning the integrity-bound
+  Architecture release `0.1.0-draft.5` at
+  `2bfe92c8c641a2258d4393a37785c793d8a46c48` and Control Plane release
+  `0.2.0-draft.25` at `81fa558aad0f998876bc29871080f2380b2c8582`;
+  the Dev Container Feature default follows the same immutable controller pin;
+  draft10 remains the explicit rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.10`; its generated reusable
   workflow callers now have valid GitHub Actions YAML structure and a
   deterministic indentation check.

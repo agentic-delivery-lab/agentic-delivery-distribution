@@ -8,9 +8,9 @@
     "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.4",
     "primitiveSourceCommit": "51e94992c5f39c59046f752e0cf6cff2ed3fff32",
     "primitiveContentSha256": "36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0",
-    "architectureCommit": "61b2285334b5cff4ae2dba7875b132ad2a4a8502",
-    "architectureContentSha256": "8a5143f2a09e5324cf8fcb5cc9652a0c62b5562371c29bc869a6536aeab4f6d3",
-    "controlPlaneCommit": "1c33a16b9a5a7e6480410c69bdda32648126eabc"
+    "architectureCommit": "2bfe92c8c641a2258d4393a37785c793d8a46c48",
+    "architectureContentSha256": "341bc5e446446af71893135eedb52b520c37162929f3ac6af2e74a494e6014ea",
+    "controlPlaneCommit": "81fa558aad0f998876bc29871080f2380b2c8582"
   },
   "projections": {
     "agents": "agents/",

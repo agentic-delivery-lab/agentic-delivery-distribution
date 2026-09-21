@@ -8,7 +8,7 @@
     "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.1",
     "primitiveSourceCommit": "b43a4e340c377193342153f2760df495c7b346fc",
     "architectureCommit": "3690baa97cf0b9b1b188b7adf289e063c3f92004",
-    "controlPlaneCommit": "8e6bcde17add29f3cc5932df96282b4b15fb32eb"
+    "controlPlaneCommit": "bd65b887eceb7162eb68235752eebf7d1e5edc59"
   },
   "projections": {
     "agents": "agents/",

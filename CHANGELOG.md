@@ -5,7 +5,7 @@
 ### Changed
 
 - The draft consumer bundle now pins the Control Plane acceptance release at
-  `8e6bcde17add29f3cc5932df96282b4b15fb32eb`; consumers gain the offline
+  `bd65b887eceb7162eb68235752eebf7d1e5edc59`; consumers gain the offline
   multi-repository identity and rollback contract through an explicit pin.
 
 - The draft consumer bundle now pins Control Plane `0.2.0-draft.9` at

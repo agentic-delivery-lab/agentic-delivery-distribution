@@ -4,6 +4,12 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.8`, pinning the Control Plane
+  release and feature defaults to
+  `30197d5c8731ea6e682ae4de5e629b964e278aab` while retaining the separately
+  pinned reusable workflow source `c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4`;
+  draft7 remains the rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.7`, pinning Control Plane
   `0.2.0-draft.22` at `ccbe92fffd41d0e5cdc906a170e74f2a723e7386` and workflow
   source `c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4`; draft6 remains the

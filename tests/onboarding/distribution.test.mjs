@@ -23,18 +23,18 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
   assert.notEqual(manifest.workflowSource.commit, manifest.controlPlane.commit);
   assert.equal(manifest.files.every((file) => file.mode === 'managed'), true);
   const plugin = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8')));
-  assert.equal(plugin.generatedFrom.primitiveSourceCommit, 'cfd86652d9f3a830c28d3dd40f6e762588c0af75');
-  assert.equal(plugin.generatedFrom.architectureCommit, '112a4163f7f8cb9142005568fb6270eef6df85cb');
+  assert.equal(plugin.generatedFrom.primitiveSourceCommit, '8d99a4a7a7240a02090ab2ac81cdb7676b8a42ad');
+  assert.equal(plugin.generatedFrom.architectureCommit, 'd4714c9489fb14824ef0967903d34a73c3e437fb');
 });
 
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
   const workflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8'));
-  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@d2bda1a0c8fc546a0ec3dc0e59809302cdf424e8'));
-  assert.ok(workflow.includes('controller_commit: ce6a0144edeefbb8125962c06f70b9c9c91cde78'));
+  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@267484a7b2f1a232ce44951e70042981dad20301'));
+  assert.ok(workflow.includes('controller_commit: 9e4ca88eb69a4df69067162d0fbc7100bd6cf691'));
   assert.ok(!workflow.includes('secrets:'));
   const architectureWorkflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8'));
-  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@d2bda1a0c8fc546a0ec3dc0e59809302cdf424e8'));
-  assert.ok(architectureWorkflow.includes('architecture_commit: 112a4163f7f8cb9142005568fb6270eef6df85cb'));
+  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@267484a7b2f1a232ce44951e70042981dad20301'));
+  assert.ok(architectureWorkflow.includes('architecture_commit: d4714c9489fb14824ef0967903d34a73c3e437fb'));
   assert.ok(architectureWorkflow.includes("affected_identifiers: '[\"urn:agentic-delivery:architecture:authority\"]'"));
 });
 

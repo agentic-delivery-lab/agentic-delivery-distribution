@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft bundle now pins Architecture `0.1.0-draft.3` at
+  `d4714c9489fb14824ef0967903d34a73c3e437fb`, Primitive `0.1.0-draft.3` at
+  `8d99a4a7a7240a02090ab2ac81cdb7676b8a42ad`, and Control Plane
+  `0.2.0-draft.16` at `9e4ca88eb69a4df69067162d0fbc7100bd6cf691`.
+
 - The draft bundle now pins Primitive release `0.1.0-draft.2` at
   `cfd86652d9f3a830c28d3dd40f6e762588c0af75` with its content digest, Control
   Plane release `0.2.0-draft.15` at `ce6a0144edeefbb8125962c06f70b9c9c91cde78`,

@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   architecture:
-    uses: agentic-delivery-lab/agentic-delivery/.github/workflows/agentic-delivery-architecture-review.yml@d2bda1a0c8fc546a0ec3dc0e59809302cdf424e8
+    uses: agentic-delivery-lab/agentic-delivery/.github/workflows/agentic-delivery-architecture-review.yml@267484a7b2f1a232ce44951e70042981dad20301
     with:
-      architecture_commit: 112a4163f7f8cb9142005568fb6270eef6df85cb
+      architecture_commit: d4714c9489fb14824ef0967903d34a73c3e437fb
       affected_identifiers: '["urn:agentic-delivery:architecture:authority"]'

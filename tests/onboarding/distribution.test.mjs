@@ -14,7 +14,7 @@ test('distribution bundle is thin, pinned, and draft until source promotion', as
   const result = await validateDistribution(root);
   assert.deepEqual(result, { files: 3, sources: 5, automationTemplates: 2 });
   const manifest = JSON.parse(await readFile(path.join(root, 'manifests/workflow-bundle.json'), 'utf8'));
-  assert.equal(manifest.bundleVersion, '0.1.0-draft.20');
+  assert.equal(manifest.bundleVersion, '0.1.0-draft.21');
 });
 
 test('bootstrap manifest is idempotent-contract input, not a control plane', async () => {
@@ -47,13 +47,13 @@ test('Agent Plugin automation projections are hash-pinned and manual', async () 
 
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
   const workflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8'));
-  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4'));
+  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@021475c8a767bf0ac94f89d45de6c46cf2353eb5'));
   assert.ok(workflow.includes('controller_commit: 825d808164ed747187490d50727bfe38061b0932'));
   assert.ok(!workflow.includes('secrets:'));
   assert.match(workflow, /jobs:\n  control-plane-contract:\n    uses:/);
   assert.match(workflow, /    with:\n      controller_commit:/);
   const architectureWorkflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8'));
-  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4'));
+  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@021475c8a767bf0ac94f89d45de6c46cf2353eb5'));
   assert.ok(architectureWorkflow.includes('architecture_commit: 5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b'));
   assert.ok(architectureWorkflow.includes("affected_identifiers: '[\"urn:agentic-delivery:architecture:authority\"]'"));
   assert.match(architectureWorkflow, /jobs:\n  architecture:\n    uses:/);

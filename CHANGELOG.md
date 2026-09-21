@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.21`; its reusable workflow and
+  private publication validator source now pin
+  `021475c8a767bf0ac94f89d45de6c46cf2353eb5`, which reproduces published
+  agents against their canonical Primitive source when projections exist.
+
 - The draft bundle advances to `0.1.0-draft.20`, pinning Control Plane draft34
   at `825d808164ed747187490d50727bfe38061b0932`; draft19 remains the explicit
   rollback bundle.

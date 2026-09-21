@@ -5,7 +5,7 @@
   "status": "draft",
   "controlPlane": {
     "repository": "agentic-delivery-lab/agentic-delivery",
-    "commit": "02b2727c582fc181a8622e86e0ed87b2e81c98f3",
+    "commit": "707a4a74c8d331f2400fffa2714f04b8a7d59b9b",
     "contracts": {
       "eventEnvelope": 1,
       "lifecycle": "1.0.0",
@@ -14,12 +14,12 @@
   },
   "architecture": {
     "repository": "agentic-delivery-lab/agentic-delivery-architecture",
-    "commit": "3690baa97cf0b9b1b188b7adf289e063c3f92004",
+    "commit": "112a4163f7f8cb9142005568fb6270eef6df85cb",
     "affectedIdentifiers": ["urn:agentic-delivery:architecture:authority"]
   },
   "workflowSource": {
     "repository": "agentic-delivery-lab/agentic-delivery",
-    "commit": "52e7a2092a1e7807ee091264a3dbbe97b8764593"
+    "commit": "b64c8a3960614b4d0deb638c9ca8e5fca4d32c95"
   },
   "files": [
     {

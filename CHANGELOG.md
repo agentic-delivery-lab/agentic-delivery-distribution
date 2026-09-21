@@ -4,6 +4,12 @@
 
 ### Changed
 
+- The draft consumer bundle now pins Control Plane `0.2.0-draft.14` at
+  `707a4a74c8d331f2400fffa2714f04b8a7d59b9b`, Architecture at
+  `112a4163f7f8cb9142005568fb6270eef6df85cb`, and the reusable workflow
+  source at `b64c8a3960614b4d0deb638c9ca8e5fca4d32c95`; the architecture
+  review path now carries the pinned content-digest contract.
+
 - The draft consumer bundle now pins Control Plane release commit
   `02b2727c582fc181a8622e86e0ed87b2e81c98f3` and workflow source commit
   `52e7a2092a1e7807ee091264a3dbbe97b8764593`, carrying downstream identity

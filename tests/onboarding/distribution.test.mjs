@@ -75,6 +75,20 @@ test('bootstrap preflights conflicts and requires explicit force before overwrit
   assert.notEqual(await readFile(managed, 'utf8'), 'local change\n');
 });
 
+test('bootstrap leaves repository-local CI workflows independent', async (t) => {
+  const targetRoot = await mkdtemp(path.join(os.tmpdir(), 'agentic-delivery-consumer-local-ci-'));
+  t.after(() => rm(targetRoot, { recursive: true, force: true }));
+  const localWorkflow = path.join(targetRoot, '.github/workflows/repository-ci.yml');
+  const localContent = `name: repository-ci\n\non:\n  push:\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo local-ci\n`;
+  await mkdir(path.dirname(localWorkflow), { recursive: true });
+  await writeFile(localWorkflow, localContent);
+
+  const result = await applyBootstrap({ distributionRoot: root, targetRoot });
+
+  assert.equal(await readFile(localWorkflow, 'utf8'), localContent);
+  assert.ok(result.entries.every((entry) => entry.target !== '.github/workflows/repository-ci.yml'));
+});
+
 test('agent promotion creates a provenance-complete projection and replaces only owned stale files', async (t) => {
   const primitiveRoot = await mkdtemp(path.join(os.tmpdir(), 'agentic-delivery-primitives-'));
   const privateRoot = await mkdtemp(path.join(os.tmpdir(), 'agentic-delivery-private-'));

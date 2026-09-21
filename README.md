@@ -47,3 +47,10 @@ lock with the immutable Primitive source commit, content hash, ADRs, tool
 policy, promotion release, compatibility targets, and timestamp. Stale
 generated files are removed only when their previous lock hash still matches;
 changed or unmanaged files stop the promotion.
+
+The two preview Automation templates are similarly projected from the Control
+Plane's canonical `automations/templates/` source into
+`packages/agent-plugin/automations/`. `manifests/automation-projections.lock.json`
+records the source commit and per-file hashes. The templates are manual and
+read-only; VS Code users choose their local workspace, model, permissions,
+enabled state, and schedule after import.

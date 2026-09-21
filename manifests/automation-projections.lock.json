@@ -1,0 +1,27 @@
+{
+  "$schema": "./automation-projections-lock.v1.schema.json",
+  "schemaVersion": 1,
+  "status": "draft",
+  "canonicalRepository": "agentic-delivery-lab/agentic-delivery",
+  "sourceCommit": "d8c77d5e68909c441066532a7bae2af994207316",
+  "projectionRepository": "agentic-delivery-lab/agentic-delivery-distribution",
+  "projectionRelease": "urn:agentic-delivery:distribution:0.1.0-draft.5",
+  "templates": [
+    {
+      "id": "review-delivery-queue",
+      "sourcePath": "automations/templates/review-delivery-queue.automation.md",
+      "targetPath": "packages/agent-plugin/automations/review-delivery-queue.automation.md",
+      "sourceRef": "d8c77d5e68909c441066532a7bae2af994207316",
+      "contentSha256": "bdc998c6a21af8020d2972e5436bd903633ba2a92ee4c007c0e9631a1f210f02",
+      "compatibilityTargets": ["vscode-automations", "agent-plugin"]
+    },
+    {
+      "id": "prepare-validation-evidence",
+      "sourcePath": "automations/templates/prepare-validation-evidence.automation.md",
+      "targetPath": "packages/agent-plugin/automations/prepare-validation-evidence.automation.md",
+      "sourceRef": "d8c77d5e68909c441066532a7bae2af994207316",
+      "contentSha256": "bb976d3b9e0a487888cf08f010abe7972dcd4688608b552a662db27e2379f163",
+      "compatibilityTargets": ["vscode-automations", "agent-plugin"]
+    }
+  ]
+}

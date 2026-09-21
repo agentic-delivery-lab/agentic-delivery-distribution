@@ -1,11 +1,11 @@
 {
   "$schema": "./workflow-bundle.schema.json",
   "schemaVersion": 1,
-  "bundleVersion": "0.1.0-draft.18",
+  "bundleVersion": "0.1.0-draft.19",
   "status": "draft",
   "controlPlane": {
     "repository": "agentic-delivery-lab/agentic-delivery",
-    "commit": "00f2daf3a02ea0ca5610d44d8b17aa3b8bb228eb",
+    "commit": "d8c77d5e68909c441066532a7bae2af994207316",
     "contracts": {
       "eventEnvelope": 1,
       "lifecycle": "1.0.0",

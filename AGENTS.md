@@ -37,3 +37,8 @@ Organization-agent promotion is a separate PR-producing boundary. Use
 `pnpm agents:promote:plan` and review the generated projection and lock before
 `pnpm agents:promote`; never author an organization agent directly in the
 private publication repository.
+
+Preview Automation templates follow the same direction: the Control Plane owns
+the canonical `.automation.md` source, this repository owns the reviewed Agent
+Plugin projection and immutable hash lock, and `.github-private` is not an
+automation distribution surface.

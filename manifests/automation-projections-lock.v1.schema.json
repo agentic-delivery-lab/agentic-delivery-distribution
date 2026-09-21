@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentic-delivery-lab/agentic-delivery-distribution/blob/main/manifests/automation-projections-lock.v1.schema.json",
+  "title": "Agentic Delivery automation projections lock v1",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "status", "canonicalRepository", "sourceCommit", "projectionRepository", "projectionRelease", "templates"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "status": { "enum": ["draft", "released", "withdrawn"] },
+    "canonicalRepository": { "const": "agentic-delivery-lab/agentic-delivery" },
+    "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "projectionRepository": { "const": "agentic-delivery-lab/agentic-delivery-distribution" },
+    "projectionRelease": { "type": "string", "pattern": "^urn:agentic-delivery:distribution:[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$" },
+    "templates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/template" }
+    }
+  },
+  "$defs": {
+    "template": {
+      "type": "object",
+      "required": ["id", "sourcePath", "targetPath", "sourceRef", "contentSha256", "compatibilityTargets"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9.-]{0,62}[a-z0-9])?$" },
+        "sourcePath": { "type": "string", "pattern": "^automations/templates/[a-z0-9.-]+\\.automation\\.md$" },
+        "targetPath": { "type": "string", "pattern": "^packages/agent-plugin/automations/[a-z0-9.-]+\\.automation\\.md$" },
+        "sourceRef": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "contentSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "compatibilityTargets": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

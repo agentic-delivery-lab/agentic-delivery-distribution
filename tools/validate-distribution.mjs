@@ -1,8 +1,15 @@
-import { lstat, readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { lstat, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const SHA1 = /^[0-9a-f]{40}$/;
+const SHA256 = /^[0-9a-f]{64}$/;
+
+function sha256(value) {
+  return createHash('sha256').update(value).digest('hex');
+}
 
 export async function validateDistribution(repositoryRoot = root) {
   const errors = [];
@@ -73,8 +80,53 @@ export async function validateDistribution(repositoryRoot = root) {
   if (plugin.generatedFrom?.primitiveRelease !== capabilities.primitiveRelease || plugin.generatedFrom?.primitiveSourceCommit !== capabilities.sourceCommit || plugin.generatedFrom?.primitiveContentSha256 !== capabilities.contentSha256) errors.push('Agent Plugin and capabilities lock must pin the same Primitive release and digest');
   if (plugin.generatedFrom?.architectureCommit !== bundle.architecture?.commit || plugin.generatedFrom?.architectureContentSha256 !== bundle.architecture?.contentSha256) errors.push('Agent Plugin and workflow bundle must pin the same Architecture release and digest');
   if (plugin.generatedFrom?.controlPlaneCommit !== bundle.controlPlane?.commit) errors.push('Agent Plugin and workflow bundle must pin the same Control Plane release');
+  const automationLock = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/automation-projections.lock.json'), 'utf8'));
+  const automationSchema = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/automation-projections-lock.v1.schema.json'), 'utf8'));
+  if (automationSchema.title !== 'Agentic Delivery automation projections lock v1') errors.push('automation projection lock schema is not self-identifying');
+  if (automationLock.schemaVersion !== 1 || !['draft', 'released', 'withdrawn'].includes(automationLock.status)) errors.push('automation projection lock must be schemaVersion 1 with a supported status');
+  if (automationLock.canonicalRepository !== 'agentic-delivery-lab/agentic-delivery') errors.push('automation projection lock canonical repository is invalid');
+  if (!SHA1.test(automationLock.sourceCommit ?? '')) errors.push('automation projection lock sourceCommit must be immutable');
+  if (automationLock.projectionRepository !== 'agentic-delivery-lab/agentic-delivery-distribution') errors.push('automation projection lock projection repository is invalid');
+  if (!/^urn:agentic-delivery:distribution:[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$/.test(automationLock.projectionRelease ?? '')) errors.push('automation projection lock release is invalid');
+  const automationIds = new Set();
+  const automationTargets = [];
+  for (const template of automationLock.templates ?? []) {
+    const prefix = `automation projection ${template?.id ?? '<missing>'}`;
+    if (!template || typeof template !== 'object' || Array.isArray(template)) {
+      errors.push(`${prefix} must be an object`);
+      continue;
+    }
+    if (!/^[a-z0-9](?:[a-z0-9.-]{0,62}[a-z0-9])?$/.test(template.id ?? '') || automationIds.has(template.id)) errors.push(`${prefix} id must be unique and lowercase`);
+    automationIds.add(template.id);
+    if (!/^automations\/templates\/[a-z0-9.-]+\.automation\.md$/.test(template.sourcePath ?? '')) errors.push(`${prefix} sourcePath is invalid`);
+    if (!/^packages\/agent-plugin\/automations\/[a-z0-9.-]+\.automation\.md$/.test(template.targetPath ?? '') || template.targetPath.includes('..')) errors.push(`${prefix} targetPath is invalid`);
+    if (template.sourceRef !== automationLock.sourceCommit) errors.push(`${prefix} sourceRef must equal the lock sourceCommit`);
+    if (!SHA256.test(template.contentSha256 ?? '')) errors.push(`${prefix} contentSha256 must be a SHA-256 digest`);
+    if (!Array.isArray(template.compatibilityTargets) || template.compatibilityTargets.length === 0) errors.push(`${prefix} compatibilityTargets must be non-empty`);
+    automationTargets.push(template.targetPath);
+    try {
+      const projected = await readFile(path.join(repositoryRoot, template.targetPath), 'utf8');
+      if (sha256(projected) !== template.contentSha256) errors.push(`${prefix} content hash does not match the projection`);
+      if (!projected.startsWith('---\nversion: 1\n') || !projected.includes(`id: ${template.id}\n`) || !projected.includes('kind: manual')) errors.push(`${prefix} projection does not retain the supported manual automation format`);
+      if (/\.github-private|secrets:|permissions:|enabled:|workspace:/i.test(projected)) errors.push(`${prefix} projection contains a client-local or private-surface setting`);
+    } catch (error) {
+      errors.push(`${prefix} target cannot be read: ${error.message}`);
+    }
+  }
+  let actualAutomationTargets = [];
+  try {
+    actualAutomationTargets = (await readdir(path.join(repositoryRoot, 'packages/agent-plugin/automations'), { withFileTypes: true }))
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.automation.md'))
+      .map((entry) => `packages/agent-plugin/automations/${entry.name}`)
+      .sort();
+  } catch (error) {
+    errors.push(`automation projection directory cannot be read: ${error.message}`);
+  }
+  if (JSON.stringify(actualAutomationTargets) !== JSON.stringify([...automationTargets].sort())) errors.push('automation projection lock does not match the Agent Plugin automation files');
+  if (plugin.generatedFrom?.automationSourceCommit !== automationLock.sourceCommit) errors.push('Agent Plugin and automation projection lock must pin the same source commit');
+  if (plugin.projections?.automations !== 'automations/') errors.push('Agent Plugin automation projection path is invalid');
   if (errors.length > 0) throw new Error(`distribution validation failed:\n${errors.join('\n')}`);
-  return { files: bundle.files.length, sources: sources.sources.length };
+  return { files: bundle.files.length, sources: sources.sources.length, automationTemplates: automationIds.size };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

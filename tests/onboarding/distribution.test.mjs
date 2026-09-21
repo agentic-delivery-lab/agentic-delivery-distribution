@@ -12,9 +12,9 @@ const root = path.resolve(import.meta.dirname, '../..');
 
 test('distribution bundle is thin, pinned, and draft until source promotion', async () => {
   const result = await validateDistribution(root);
-  assert.deepEqual(result, { files: 3, sources: 5 });
+  assert.deepEqual(result, { files: 3, sources: 5, automationTemplates: 2 });
   const manifest = JSON.parse(await readFile(path.join(root, 'manifests/workflow-bundle.json'), 'utf8'));
-  assert.equal(manifest.bundleVersion, '0.1.0-draft.18');
+  assert.equal(manifest.bundleVersion, '0.1.0-draft.19');
 });
 
 test('bootstrap manifest is idempotent-contract input, not a control plane', async () => {
@@ -30,12 +30,25 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
   assert.equal(plugin.generatedFrom.primitiveContentSha256, '36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0');
   assert.equal(plugin.generatedFrom.architectureCommit, '5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b');
   assert.equal(plugin.generatedFrom.architectureContentSha256, '3bcc5f617de6ecf93f6b1c55bece5f97c03bcd979ccb1aa1c7d2431199383a3c');
+  assert.equal(plugin.generatedFrom.automationSourceCommit, 'd8c77d5e68909c441066532a7bae2af994207316');
+});
+
+test('Agent Plugin automation projections are hash-pinned and manual', async () => {
+  const lock = JSON.parse(await readFile(path.join(root, 'manifests/automation-projections.lock.json'), 'utf8'));
+  assert.equal(lock.sourceCommit, 'd8c77d5e68909c441066532a7bae2af994207316');
+  assert.deepEqual(lock.templates.map((template) => template.id), ['review-delivery-queue', 'prepare-validation-evidence']);
+  for (const template of lock.templates) {
+    const projected = await readFile(path.join(root, template.targetPath), 'utf8');
+    assert.match(projected, /^---\nversion: 1\n/);
+    assert.match(projected, /kind: manual/);
+    assert.match(projected, /read[- ]only/i);
+  }
 });
 
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
   const workflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8'));
   assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4'));
-  assert.ok(workflow.includes('controller_commit: 00f2daf3a02ea0ca5610d44d8b17aa3b8bb228eb'));
+  assert.ok(workflow.includes('controller_commit: d8c77d5e68909c441066532a7bae2af994207316'));
   assert.ok(!workflow.includes('secrets:'));
   assert.match(workflow, /jobs:\n  control-plane-contract:\n    uses:/);
   assert.match(workflow, /    with:\n      controller_commit:/);

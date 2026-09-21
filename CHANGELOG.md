@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.15`, pinning the corrected
+  Control Plane draft29 release at
+  `7061773305054da9eb33b4ef872a7b7c63364d65`; draft14 remains the explicit
+  rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.14`, pinning the Control Plane
   release at `0956144e5b9229209ad0fb82299a1d99a366ac66`, which includes the
   release-bound Primitive selection contract; draft13 remains the explicit

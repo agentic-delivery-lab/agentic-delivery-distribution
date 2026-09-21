@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.6`, pinning Control Plane
+  `0.2.0-draft.21` at `9634a711ded35f54a69e4c361fc3369100d84290` and workflow
+  source `df4068a77b3192d20c48de521f47edfcb312c6ee`; draft5 remains the
+  explicit rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.5`, pinning Control Plane
   `0.2.0-draft.20` at `213036f87776dcf75e349355ff7983ded476c42e` and workflow
   source `c3bf78d51836be737eb069b4408f7b16f21c0877`.

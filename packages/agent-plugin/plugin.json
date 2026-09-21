@@ -5,10 +5,10 @@
   "status": "draft",
   "generatedFrom": {
     "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
-    "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.1",
-    "primitiveSourceCommit": "b43a4e340c377193342153f2760df495c7b346fc",
+    "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.2",
+    "primitiveSourceCommit": "cfd86652d9f3a830c28d3dd40f6e762588c0af75",
     "architectureCommit": "112a4163f7f8cb9142005568fb6270eef6df85cb",
-    "controlPlaneCommit": "707a4a74c8d331f2400fffa2714f04b8a7d59b9b"
+    "controlPlaneCommit": "ce6a0144edeefbb8125962c06f70b9c9c91cde78"
   },
   "projections": {
     "agents": "agents/",

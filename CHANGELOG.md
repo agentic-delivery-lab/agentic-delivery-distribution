@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft bundle now pins Primitive release `0.1.0-draft.2` at
+  `cfd86652d9f3a830c28d3dd40f6e762588c0af75` with its content digest, Control
+  Plane release `0.2.0-draft.15` at `ce6a0144edeefbb8125962c06f70b9c9c91cde78`,
+  and workflow source `d2bda1a0c8fc546a0ec3dc0e59809302cdf424e8`.
+
 - The draft consumer bundle now pins Control Plane `0.2.0-draft.14` at
   `707a4a74c8d331f2400fffa2714f04b8a7d59b9b`, Architecture at
   `112a4163f7f8cb9142005568fb6270eef6df85cb`, and the reusable workflow

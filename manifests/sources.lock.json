@@ -13,7 +13,7 @@
       "id": "control-plane",
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery",
-      "commit": "9634a711ded35f54a69e4c361fc3369100d84290",
+      "commit": "ccbe92fffd41d0e5cdc906a170e74f2a723e7386",
       "verified": true
     },
     {
@@ -34,7 +34,7 @@
       "id": "distribution-workflow",
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery",
-      "commit": "df4068a77b3192d20c48de521f47edfcb312c6ee",
+      "commit": "c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4",
       "verified": true
     }
   ]

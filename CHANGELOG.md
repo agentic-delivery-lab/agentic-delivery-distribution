@@ -4,6 +4,10 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.16`, pinning Control Plane draft30
+  at `069475071cfa6b725446e8179ad1db164dc2d96e`, including the canonical
+  organization event catalog; draft15 remains the explicit rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.15`, pinning the corrected
   Control Plane draft29 release at
   `7061773305054da9eb33b4ef872a7b7c63364d65`; draft14 remains the explicit

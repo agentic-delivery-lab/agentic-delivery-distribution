@@ -23,7 +23,7 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
   assert.notEqual(manifest.workflowSource.commit, manifest.controlPlane.commit);
   assert.equal(manifest.files.every((file) => file.mode === 'managed'), true);
   const plugin = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8')));
-  assert.equal(plugin.generatedFrom.primitiveSourceCommit, '78cceeda1c6d7ceeddd4cf3f392836284a0216f8');
+  assert.equal(plugin.generatedFrom.primitiveSourceCommit, 'b43a4e340c377193342153f2760df495c7b346fc');
   assert.equal(plugin.generatedFrom.architectureCommit, '3690baa97cf0b9b1b188b7adf289e063c3f92004');
 });
 

@@ -1,4 +1,5 @@
 {
+  "$schema": "./capabilities-lock.v1.schema.json",
   "schemaVersion": 1,
   "status": "draft",
   "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",

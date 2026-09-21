@@ -15,6 +15,7 @@
   "architecture": {
     "repository": "agentic-delivery-lab/agentic-delivery-architecture",
     "commit": "d4714c9489fb14824ef0967903d34a73c3e437fb",
+    "contentSha256": "0afe23f5dcf6a250940112d979e013fdc052a6372c41518aa757402d69099484",
     "affectedIdentifiers": ["urn:agentic-delivery:architecture:authority"]
   },
   "workflowSource": {

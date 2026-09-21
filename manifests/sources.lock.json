@@ -24,6 +24,13 @@
       "verified": true
     },
     {
+      "id": "primitives",
+      "kind": "git",
+      "repository": "agentic-delivery-lab/agentic-delivery-primitives",
+      "commit": "8d99a4a7a7240a02090ab2ac81cdb7676b8a42ad",
+      "verified": true
+    },
+    {
       "id": "distribution-workflow",
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery",

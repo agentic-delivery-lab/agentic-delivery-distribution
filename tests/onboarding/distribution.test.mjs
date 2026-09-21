@@ -12,19 +12,22 @@ const root = path.resolve(import.meta.dirname, '../..');
 
 test('distribution bundle is thin, pinned, and draft until source promotion', async () => {
   const result = await validateDistribution(root);
-  assert.deepEqual(result, { files: 3, sources: 4 });
+  assert.deepEqual(result, { files: 3, sources: 5 });
 });
 
 test('bootstrap manifest is idempotent-contract input, not a control plane', async () => {
   const manifest = await validateBootstrapManifest(root);
   assert.equal(manifest.controlPlane.repository, 'agentic-delivery-lab/agentic-delivery');
   assert.equal(manifest.architecture.repository, 'agentic-delivery-lab/agentic-delivery-architecture');
+  assert.equal(manifest.architecture.contentSha256, '0afe23f5dcf6a250940112d979e013fdc052a6372c41518aa757402d69099484');
   assert.deepEqual(manifest.architecture.affectedIdentifiers, ['urn:agentic-delivery:architecture:authority']);
   assert.notEqual(manifest.workflowSource.commit, manifest.controlPlane.commit);
   assert.equal(manifest.files.every((file) => file.mode === 'managed'), true);
   const plugin = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8')));
   assert.equal(plugin.generatedFrom.primitiveSourceCommit, '8d99a4a7a7240a02090ab2ac81cdb7676b8a42ad');
+  assert.equal(plugin.generatedFrom.primitiveContentSha256, '36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0');
   assert.equal(plugin.generatedFrom.architectureCommit, 'd4714c9489fb14824ef0967903d34a73c3e437fb');
+  assert.equal(plugin.generatedFrom.architectureContentSha256, '0afe23f5dcf6a250940112d979e013fdc052a6372c41518aa757402d69099484');
 });
 
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
@@ -52,6 +55,7 @@ test('bootstrap projects only declared files, records provenance, and is idempot
   assert.match(lock.$schema, /consumer-distribution-lock\.v1\.schema\.json$/);
   assert.equal(lock.schemaVersion, 1);
   assert.equal(lock.files.length, 3);
+  assert.equal(lock.architecture.contentSha256, '0afe23f5dcf6a250940112d979e013fdc052a6372c41518aa757402d69099484');
   const second = await applyBootstrap({ distributionRoot: root, targetRoot });
   assert.ok(second.entries.every((entry) => entry.action === 'unchanged'));
 });

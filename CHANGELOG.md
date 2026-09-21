@@ -47,5 +47,12 @@
 
 ### Added
 
+- Added Architecture content-digest pinning to the workflow bundle and
+  consumer provenance lock.
+
+- Added a schema and cross-file validation for the Primitive capabilities lock,
+  including the Primitive source digest and its consistency with the Agent
+  Plugin, source lock, Architecture pin, and Control Plane pin.
+
 - Added the reproducible Dev Container, Feature, bootstrap, workflow-caller,
   and Agent Plugin distribution scaffold.

@@ -65,6 +65,7 @@ export async function validateBootstrapManifest(root = repositoryRoot) {
   if (manifest.schemaVersion !== 1) errors.push('workflow bundle schemaVersion must be 1');
   if (!/^[0-9a-f]{40}$/.test(String(manifest.controlPlane?.commit ?? ''))) errors.push('control-plane commit must be immutable');
   if (!/^[0-9a-f]{40}$/.test(String(manifest.architecture?.commit ?? ''))) errors.push('architecture commit must be immutable');
+  if (!/^[0-9a-f]{64}$/.test(String(manifest.architecture?.contentSha256 ?? ''))) errors.push('architecture content digest must be immutable');
   if (!Array.isArray(manifest.architecture?.affectedIdentifiers) || manifest.architecture.affectedIdentifiers.length === 0) errors.push('architecture affected identifiers are required');
   if (!/^[0-9a-f]{40}$/.test(String(manifest.workflowSource?.commit ?? ''))) errors.push('workflow source commit must be immutable');
   if (!Array.isArray(manifest.files) || manifest.files.some((file) => !file?.target || !file?.source)) errors.push('workflow bundle files must have source and target');

@@ -10,6 +10,7 @@ export async function validateDistribution(repositoryRoot = root) {
   if (bundle.schemaVersion !== 1 || bundle.status !== 'draft') errors.push('workflow bundle must be schemaVersion 1 draft');
   if (!/^[0-9a-f]{40}$/.test(bundle.controlPlane?.commit ?? '')) errors.push('control-plane commit must be immutable');
   if (!/^[0-9a-f]{40}$/.test(bundle.architecture?.commit ?? '')) errors.push('architecture commit must be immutable');
+  if (!/^[0-9a-f]{64}$/.test(bundle.architecture?.contentSha256 ?? '')) errors.push('architecture content digest must be immutable');
   if (!Array.isArray(bundle.architecture?.affectedIdentifiers) || bundle.architecture.affectedIdentifiers.length === 0 || bundle.architecture.affectedIdentifiers.some((id) => typeof id !== 'string' || id.length === 0)) errors.push('architecture affected identifiers are required');
   if (!/^[0-9a-f]{40}$/.test(bundle.workflowSource?.commit ?? '')) errors.push('workflow source commit must be immutable');
   for (const file of bundle.files ?? []) {
@@ -46,6 +47,15 @@ export async function validateDistribution(repositoryRoot = root) {
   if (!lockedControlPlane || lockedControlPlane.commit !== controlPlaneCommit) errors.push('workflow bundle and source lock must pin the same Control Plane commit');
   const lockedArchitecture = (sources.sources ?? []).find((source) => source.id === 'architecture');
   if (!lockedArchitecture || lockedArchitecture.commit !== bundle.architecture?.commit) errors.push('workflow bundle and source lock must pin the same Architecture commit');
+  const capabilities = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/capabilities.lock.json'), 'utf8'));
+  const capabilitiesSchema = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/capabilities-lock.v1.schema.json'), 'utf8'));
+  if (capabilities.$schema !== './capabilities-lock.v1.schema.json' || capabilitiesSchema.title !== 'Agentic Delivery capabilities lock v1') errors.push('capabilities lock must identify its local schema');
+  if (capabilities.schemaVersion !== 1 || capabilities.status !== 'draft') errors.push('capabilities lock must be schemaVersion 1 draft');
+  if (capabilities.primitiveRepository !== 'agentic-delivery-lab/agentic-delivery-primitives') errors.push('capabilities lock primitive repository is invalid');
+  if (!/^urn:agentic-delivery:primitive-release:\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(capabilities.primitiveRelease ?? '')) errors.push('capabilities lock primitive release is invalid');
+  if (!/^[0-9a-f]{40}$/.test(capabilities.sourceCommit ?? '') || !/^[0-9a-f]{64}$/.test(capabilities.contentSha256 ?? '')) errors.push('capabilities lock must pin Primitive source commit and content digest');
+  const lockedPrimitives = (sources.sources ?? []).find((source) => source.id === 'primitives');
+  if (!lockedPrimitives || lockedPrimitives.commit !== capabilities.sourceCommit || lockedPrimitives.repository !== capabilities.primitiveRepository) errors.push('source lock and capabilities lock must pin the same Primitive source');
   const lockedWorkflow = (sources.sources ?? []).find((source) => source.id === 'distribution-workflow');
   if (!lockedWorkflow || lockedWorkflow.commit !== bundle.workflowSource?.commit) errors.push('workflow bundle and source lock must pin the same workflow source commit');
   const consumerWorkflow = await readFile(path.join(repositoryRoot, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8');
@@ -58,6 +68,9 @@ export async function validateDistribution(repositoryRoot = root) {
   if (plugin.schemaVersion !== 1 || plugin.status !== 'draft') errors.push('Agent Plugin manifest must be schemaVersion 1 draft');
   if (!/^[0-9a-f]{40}$/.test(plugin.generatedFrom?.primitiveSourceCommit ?? '')) errors.push('Agent Plugin must pin the Primitive source commit');
   if (!/^[0-9a-f]{40}$/.test(plugin.generatedFrom?.architectureCommit ?? '')) errors.push('Agent Plugin must pin the Architecture commit');
+  if (plugin.generatedFrom?.primitiveRelease !== capabilities.primitiveRelease || plugin.generatedFrom?.primitiveSourceCommit !== capabilities.sourceCommit || plugin.generatedFrom?.primitiveContentSha256 !== capabilities.contentSha256) errors.push('Agent Plugin and capabilities lock must pin the same Primitive release and digest');
+  if (plugin.generatedFrom?.architectureCommit !== bundle.architecture?.commit || plugin.generatedFrom?.architectureContentSha256 !== bundle.architecture?.contentSha256) errors.push('Agent Plugin and workflow bundle must pin the same Architecture release and digest');
+  if (plugin.generatedFrom?.controlPlaneCommit !== bundle.controlPlane?.commit) errors.push('Agent Plugin and workflow bundle must pin the same Control Plane release');
   if (errors.length > 0) throw new Error(`distribution validation failed:\n${errors.join('\n')}`);
   return { files: bundle.files.length, sources: sources.sources.length };
 }

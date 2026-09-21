@@ -10,7 +10,7 @@
     "primitiveContentSha256": "36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0",
     "architectureCommit": "5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b",
     "architectureContentSha256": "3bcc5f617de6ecf93f6b1c55bece5f97c03bcd979ccb1aa1c7d2431199383a3c",
-    "controlPlaneCommit": "b52464571e1c0d3adfa5986bd54668d3c7da4a13"
+    "controlPlaneCommit": "0956144e5b9229209ad0fb82299a1d99a366ac66"
   },
   "projections": {
     "agents": "agents/",

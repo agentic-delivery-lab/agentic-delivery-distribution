@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.14`, pinning the Control Plane
+  release at `0956144e5b9229209ad0fb82299a1d99a366ac66`, which includes the
+  release-bound Primitive selection contract; draft13 remains the explicit
+  rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.13`, pinning the Control Plane
   release at `b52464571e1c0d3adfa5986bd54668d3c7da4a13` so consumers receive
   the commit-exact dependency digest validation.

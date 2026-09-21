@@ -4,6 +4,10 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.12`, pinning Architecture draft
+  `0.1.0-draft.6` at `5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b` and its
+  changelog-inclusive digest; draft11 remains the explicit rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.11`, pinning the integrity-bound
   Architecture release `0.1.0-draft.5` at
   `2bfe92c8c641a2258d4393a37785c793d8a46c48` and Control Plane release

@@ -14,22 +14,22 @@ test('distribution bundle is thin, pinned, and draft until source promotion', as
   const result = await validateDistribution(root);
   assert.deepEqual(result, { files: 3, sources: 5 });
   const manifest = JSON.parse(await readFile(path.join(root, 'manifests/workflow-bundle.json'), 'utf8'));
-  assert.equal(manifest.bundleVersion, '0.1.0-draft.11');
+  assert.equal(manifest.bundleVersion, '0.1.0-draft.12');
 });
 
 test('bootstrap manifest is idempotent-contract input, not a control plane', async () => {
   const manifest = await validateBootstrapManifest(root);
   assert.equal(manifest.controlPlane.repository, 'agentic-delivery-lab/agentic-delivery');
   assert.equal(manifest.architecture.repository, 'agentic-delivery-lab/agentic-delivery-architecture');
-  assert.equal(manifest.architecture.contentSha256, '341bc5e446446af71893135eedb52b520c37162929f3ac6af2e74a494e6014ea');
+  assert.equal(manifest.architecture.contentSha256, '3bcc5f617de6ecf93f6b1c55bece5f97c03bcd979ccb1aa1c7d2431199383a3c');
   assert.deepEqual(manifest.architecture.affectedIdentifiers, ['urn:agentic-delivery:architecture:authority']);
   assert.notEqual(manifest.workflowSource.commit, manifest.controlPlane.commit);
   assert.equal(manifest.files.every((file) => file.mode === 'managed'), true);
   const plugin = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8')));
   assert.equal(plugin.generatedFrom.primitiveSourceCommit, '51e94992c5f39c59046f752e0cf6cff2ed3fff32');
   assert.equal(plugin.generatedFrom.primitiveContentSha256, '36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0');
-  assert.equal(plugin.generatedFrom.architectureCommit, '2bfe92c8c641a2258d4393a37785c793d8a46c48');
-  assert.equal(plugin.generatedFrom.architectureContentSha256, '341bc5e446446af71893135eedb52b520c37162929f3ac6af2e74a494e6014ea');
+  assert.equal(plugin.generatedFrom.architectureCommit, '5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b');
+  assert.equal(plugin.generatedFrom.architectureContentSha256, '3bcc5f617de6ecf93f6b1c55bece5f97c03bcd979ccb1aa1c7d2431199383a3c');
 });
 
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
@@ -41,7 +41,7 @@ test('consumer workflow delegates only to the secret-free pinned contract workfl
   assert.match(workflow, /    with:\n      controller_commit:/);
   const architectureWorkflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8'));
   assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@c3d0d2c7be0a68ca9d6ae83174f8ebae754826f4'));
-  assert.ok(architectureWorkflow.includes('architecture_commit: 2bfe92c8c641a2258d4393a37785c793d8a46c48'));
+  assert.ok(architectureWorkflow.includes('architecture_commit: 5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b'));
   assert.ok(architectureWorkflow.includes("affected_identifiers: '[\"urn:agentic-delivery:architecture:authority\"]'"));
   assert.match(architectureWorkflow, /jobs:\n  architecture:\n    uses:/);
   assert.match(architectureWorkflow, /    with:\n      architecture_commit:/);
@@ -61,7 +61,7 @@ test('bootstrap projects only declared files, records provenance, and is idempot
   assert.match(lock.$schema, /consumer-distribution-lock\.v1\.schema\.json$/);
   assert.equal(lock.schemaVersion, 1);
   assert.equal(lock.files.length, 3);
-  assert.equal(lock.architecture.contentSha256, '341bc5e446446af71893135eedb52b520c37162929f3ac6af2e74a494e6014ea');
+  assert.equal(lock.architecture.contentSha256, '3bcc5f617de6ecf93f6b1c55bece5f97c03bcd979ccb1aa1c7d2431199383a3c');
   const second = await applyBootstrap({ distributionRoot: root, targetRoot });
   assert.ok(second.entries.every((entry) => entry.action === 'unchanged'));
 });

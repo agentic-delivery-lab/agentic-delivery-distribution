@@ -5,7 +5,7 @@
   "status": "draft",
   "controlPlane": {
     "repository": "agentic-delivery-lab/agentic-delivery",
-    "commit": "bfe2913c244dcaa3ff29aee18cac327ccbce44f0",
+    "commit": "8e6bcde17add29f3cc5932df96282b4b15fb32eb",
     "contracts": {
       "eventEnvelope": 1,
       "lifecycle": "1.0.0",

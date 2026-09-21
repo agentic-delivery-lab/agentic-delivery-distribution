@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft consumer bundle now pins Control Plane release `0.2.0-draft.12`
+  at `93583d371818045a9ae694b97e0cf90a4fae8956`; the workflow source pins
+  runtime commit `3ea621d64507c0ef187181a487e5f8ff190e5aa3` and includes the
+  deterministic origin lifecycle write-back acceptance check.
+
 - The draft consumer bundle now pins the Control Plane acceptance release at
   `bd65b887eceb7162eb68235752eebf7d1e5edc59`; consumers gain the offline
   multi-repository identity and rollback contract through an explicit pin.

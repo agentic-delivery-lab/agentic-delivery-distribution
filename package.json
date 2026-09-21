@@ -11,6 +11,8 @@
     "distribution:check": "node tools/validate-distribution.mjs",
     "bootstrap:plan": "node bootstrap/src/bootstrap.mjs --plan",
     "bootstrap:apply": "node bootstrap/src/bootstrap.mjs --apply",
+    "agents:promote:plan": "node bootstrap/src/promote-agent-projections.mjs --plan",
+    "agents:promote": "node bootstrap/src/promote-agent-projections.mjs --apply",
     "test": "node --test \"tests/**/*.test.mjs\""
   }
 }

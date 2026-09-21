@@ -32,3 +32,8 @@ creates missing files and refuses changed local files; `--force` is an
 explicit, human-reviewed replacement operation. The consumer provenance lock
 at `.agentic-delivery/distribution.lock.json` records the immutable bundle and
 source hashes and is not lifecycle or execution state.
+
+Organization-agent promotion is a separate PR-producing boundary. Use
+`pnpm agents:promote:plan` and review the generated projection and lock before
+`pnpm agents:promote`; never author an organization agent directly in the
+private publication repository.

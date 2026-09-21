@@ -33,3 +33,17 @@ The command reads only paths declared in `manifests/workflow-bundle.json`.
 It preflights every target before writing, refuses symbolic-link targets, and
 writes `.agentic-delivery/distribution.lock.json` with the bundle pins and
 source SHA-256 values. A conflict is never silently overwritten.
+
+Organization Copilot agent publication is a separate explicit operation:
+
+```text
+pnpm agents:promote:plan
+pnpm agents:promote
+```
+
+It reads only `agentic-delivery-primitives/agents/copilot/*.agent.md`, copies
+those exact files into `.github-private/agents/`, and writes the publication
+lock with the immutable Primitive source commit, content hash, ADRs, tool
+policy, promotion release, compatibility targets, and timestamp. Stale
+generated files are removed only when their previous lock hash still matches;
+changed or unmanaged files stop the promotion.

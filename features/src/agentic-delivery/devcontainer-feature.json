@@ -7,7 +7,7 @@
   "options": {
     "controlPlaneCommit": {
       "type": "string",
-      "default": "ff4b2198a04ed695942faeec4e838a628b1b2ed4",
+      "default": "4a52effdf11c38dace441b5ec7222bae4fdb92b4",
       "description": "Immutable Control Plane commit used by the consumer caller."
     }
   }

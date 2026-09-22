@@ -41,7 +41,7 @@ export async function validateDistribution(repositoryRoot = root) {
   const sources = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/sources.lock.json'), 'utf8'));
   if (sources.schemaVersion !== 1 || sources.status !== 'draft') errors.push('source lock must be schemaVersion 1 draft');
   const unverified = (sources.sources ?? []).filter((source) => source.verified !== true);
-  if (unverified.length === 0) errors.push('draft source lock must retain an explicit unverified entry until release promotion');
+  if (sources.status === 'released' && unverified.length > 0) errors.push('released source lock must not contain unverified sources');
   const base = (sources.sources ?? []).find((source) => source.id === 'devcontainer-base-ubuntu-24.04');
   const baseFiles = [
     await readFile(path.join(repositoryRoot, '.devcontainer/Dockerfile'), 'utf8'),

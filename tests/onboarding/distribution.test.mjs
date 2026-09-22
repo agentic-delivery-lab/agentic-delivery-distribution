@@ -17,6 +17,17 @@ test('distribution bundle is thin, pinned, and draft until source promotion', as
   assert.equal(manifest.bundleVersion, '0.1.0-draft.22');
 });
 
+test('a fully verified draft source lock is valid before release promotion', async (t) => {
+  const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'agentic-distribution-verified-draft-'));
+  t.after(() => rm(temporaryRoot, { recursive: true, force: true }));
+  await import('node:fs/promises').then(({ cp }) => cp(root, temporaryRoot, { recursive: true }));
+  const lockPath = path.join(temporaryRoot, 'manifests/sources.lock.json');
+  const lock = JSON.parse(await readFile(lockPath, 'utf8'));
+  for (const source of lock.sources) source.verified = true;
+  await writeFile(lockPath, `${JSON.stringify(lock, null, 2)}\n`, 'utf8');
+  await assert.doesNotReject(() => validateDistribution(temporaryRoot));
+});
+
 test('bootstrap manifest is idempotent-contract input, not a control plane', async () => {
   const manifest = await validateBootstrapManifest(root);
   assert.equal(manifest.controlPlane.repository, 'agentic-delivery-lab/agentic-delivery');

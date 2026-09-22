@@ -4,6 +4,10 @@
 
 ### Changed
 
+- The Dev Container base image is now pinned to the verified OCI index digest
+  `sha256:d94c97dd9cacf183d0a6fd12a8e87b526e9e928307674ae9c94139139c0c6eae`;
+  a fully verified draft source lock is accepted before release promotion.
+
 - The draft bundle advances to `0.1.0-draft.22`; its reusable workflow callers
   now pin Control Plane commit
   `6843c8e6a5ef3d7ec31400a9d7af282d07c5a37b`, which includes the immutable

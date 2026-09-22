@@ -4,6 +4,10 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.25`, pinning Architecture
+  Authority draft8 at `9d4872c39e9c52075a7a299ad4584ac3eb704a1b` and its
+  reproducible content digest; draft24 remains the explicit rollback bundle.
+
 - The draft bundle advances to `0.1.0-draft.24`, pinning Control Plane
   `0.2.0-draft.36` at `0ae64cb2b1560e7a9e73435e954e3be8bc3b2b88`; draft23
   remains the explicit rollback bundle.

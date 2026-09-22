@@ -5,7 +5,7 @@
   "canonicalRepository": "agentic-delivery-lab/agentic-delivery",
   "sourceCommit": "0ae64cb2b1560e7a9e73435e954e3be8bc3b2b88",
   "projectionRepository": "agentic-delivery-lab/agentic-delivery-distribution",
-  "projectionRelease": "urn:agentic-delivery:distribution:0.1.0-draft.24",
+  "projectionRelease": "urn:agentic-delivery:distribution:0.1.0-draft.25",
   "templates": [
     {
       "id": "review-delivery-queue",

@@ -4,6 +4,11 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.22`; its reusable workflow callers
+  now pin Control Plane commit
+  `6843c8e6a5ef3d7ec31400a9d7af282d07c5a37b`, which includes the immutable
+  Architecture Authority review pin and fail-closed digest validation.
+
 - The draft bundle advances to `0.1.0-draft.21`; its reusable workflow and
   private publication validator source now pin
   `021475c8a767bf0ac94f89d45de6c46cf2353eb5`, which reproduces published

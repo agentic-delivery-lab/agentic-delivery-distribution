@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
   "id": "agentic-delivery",
-  "version": "0.1.0-draft.4",
+  "version": "0.1.0-draft.5",
   "status": "draft",
   "generatedFrom": {
     "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
     "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.4",
-    "primitiveSourceCommit": "51e94992c5f39c59046f752e0cf6cff2ed3fff32",
+    "primitiveSourceCommit": "01dc8df9eae5ee8394d05246dbf9ccdcddaa7c9e",
     "primitiveContentSha256": "36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0",
-    "architectureCommit": "5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b",
-    "architectureContentSha256": "3bcc5f617de6ecf93f6b1c55bece5f97c03bcd979ccb1aa1c7d2431199383a3c",
-    "controlPlaneCommit": "825d808164ed747187490d50727bfe38061b0932",
-    "automationSourceCommit": "825d808164ed747187490d50727bfe38061b0932"
+    "architectureCommit": "c6e7afcda69c06dc5f709e3bc7b8b74669e100f3",
+    "architectureContentSha256": "49ac105a3fc7384c3be7459c3ba0569934f8b036a10cb0ee89a7f2b8edb50a5b",
+    "controlPlaneCommit": "02c29af7572ea0fc5a593786dc9583cb1d275f3f",
+    "automationSourceCommit": "02c29af7572ea0fc5a593786dc9583cb1d275f3f"
   },
   "projections": {
     "agents": "agents/",

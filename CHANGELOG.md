@@ -4,6 +4,12 @@
 
 ### Changed
 
+- The draft bundle advances to `0.1.0-draft.23`, pinning Control Plane draft35
+  at `02c29af7572ea0fc5a593786dc9583cb1d275f3f`, Architecture draft7 at
+  `c6e7afcda69c06dc5f709e3bc7b8b74669e100f3`, and the filtered Primitive
+  candidate at `01dc8df9eae5ee8394d05246dbf9ccdcddaa7c9e`; draft22 remains the
+  explicit rollback bundle.
+
 - The Dev Container base image is now pinned to the verified OCI index digest
   `sha256:d94c97dd9cacf183d0a6fd12a8e87b526e9e928307674ae9c94139139c0c6eae`;
   a fully verified draft source lock is accepted before release promotion.

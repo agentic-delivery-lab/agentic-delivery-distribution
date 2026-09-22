@@ -12,5 +12,5 @@ jobs:
   architecture:
     uses: agentic-delivery-lab/agentic-delivery/.github/workflows/agentic-delivery-architecture-review.yml@6843c8e6a5ef3d7ec31400a9d7af282d07c5a37b
     with:
-      architecture_commit: 5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b
+      architecture_commit: c6e7afcda69c06dc5f709e3bc7b8b74669e100f3
       affected_identifiers: '["urn:agentic-delivery:architecture:authority"]'

@@ -3,25 +3,31 @@
   "schemaVersion": 1,
   "status": "draft",
   "canonicalRepository": "agentic-delivery-lab/agentic-delivery",
-  "sourceCommit": "825d808164ed747187490d50727bfe38061b0932",
+  "sourceCommit": "02c29af7572ea0fc5a593786dc9583cb1d275f3f",
   "projectionRepository": "agentic-delivery-lab/agentic-delivery-distribution",
-  "projectionRelease": "urn:agentic-delivery:distribution:0.1.0-draft.5",
+  "projectionRelease": "urn:agentic-delivery:distribution:0.1.0-draft.23",
   "templates": [
     {
       "id": "review-delivery-queue",
       "sourcePath": "automations/templates/review-delivery-queue.automation.md",
       "targetPath": "packages/agent-plugin/automations/review-delivery-queue.automation.md",
-      "sourceRef": "825d808164ed747187490d50727bfe38061b0932",
+      "sourceRef": "02c29af7572ea0fc5a593786dc9583cb1d275f3f",
       "contentSha256": "bdc998c6a21af8020d2972e5436bd903633ba2a92ee4c007c0e9631a1f210f02",
-      "compatibilityTargets": ["vscode-automations", "agent-plugin"]
+      "compatibilityTargets": [
+        "vscode-automations",
+        "agent-plugin"
+      ]
     },
     {
       "id": "prepare-validation-evidence",
       "sourcePath": "automations/templates/prepare-validation-evidence.automation.md",
       "targetPath": "packages/agent-plugin/automations/prepare-validation-evidence.automation.md",
-      "sourceRef": "825d808164ed747187490d50727bfe38061b0932",
+      "sourceRef": "02c29af7572ea0fc5a593786dc9583cb1d275f3f",
       "contentSha256": "bb976d3b9e0a487888cf08f010abe7972dcd4688608b552a662db27e2379f163",
-      "compatibilityTargets": ["vscode-automations", "agent-plugin"]
+      "compatibilityTargets": [
+        "vscode-automations",
+        "agent-plugin"
+      ]
     }
   ]
 }

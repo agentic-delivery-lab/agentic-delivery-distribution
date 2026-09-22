@@ -1,11 +1,11 @@
 {
   "$schema": "./workflow-bundle.schema.json",
   "schemaVersion": 1,
-  "bundleVersion": "0.1.0-draft.22",
+  "bundleVersion": "0.1.0-draft.23",
   "status": "draft",
   "controlPlane": {
     "repository": "agentic-delivery-lab/agentic-delivery",
-    "commit": "825d808164ed747187490d50727bfe38061b0932",
+    "commit": "02c29af7572ea0fc5a593786dc9583cb1d275f3f",
     "contracts": {
       "eventEnvelope": 1,
       "lifecycle": "1.0.0",
@@ -14,9 +14,11 @@
   },
   "architecture": {
     "repository": "agentic-delivery-lab/agentic-delivery-architecture",
-    "commit": "5655c0fda81e9ebcc6e3f7e9805e966ce15ed96b",
-    "contentSha256": "3bcc5f617de6ecf93f6b1c55bece5f97c03bcd979ccb1aa1c7d2431199383a3c",
-    "affectedIdentifiers": ["urn:agentic-delivery:architecture:authority"]
+    "commit": "c6e7afcda69c06dc5f709e3bc7b8b74669e100f3",
+    "contentSha256": "49ac105a3fc7384c3be7459c3ba0569934f8b036a10cb0ee89a7f2b8edb50a5b",
+    "affectedIdentifiers": [
+      "urn:agentic-delivery:architecture:authority"
+    ]
   },
   "workflowSource": {
     "repository": "agentic-delivery-lab/agentic-delivery",

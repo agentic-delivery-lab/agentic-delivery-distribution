@@ -54,3 +54,22 @@ Plane's canonical `automations/templates/` source into
 records the source commit and per-file hashes. The templates are manual and
 read-only; VS Code users choose their local workspace, model, permissions,
 enabled state, and schedule after import.
+
+## Customizations repository-name migration
+
+The staged capabilities lock uses schema version 2 and the explicit source
+`agentic-delivery-lab/agentic-delivery-agent-customizations`, bound to repository
+ID `1380894656`. Version 1 remains available for immutable historical locks.
+The capability release ID, source commit and digest are unchanged; the renamed
+source remains unverified until hosting identity and explicit-name access are
+read back. This draft does not admit a compatible full release composition,
+activate participants or establish Copilot publication entitlement.
+
+Agent-projection generation now emits publication lock version 2, with the
+current name and repository ID on the lock and each record. It admits an old
+version 1 lock only under its historical source identity for ownership checks.
+The Control Plane version 2 publication reader and private caller updates must
+be admitted before using these projections; version 1 is not silently treated
+as version 2. Existing local checkout paths and the
+`AGENTIC_DELIVERY_PRIMITIVES_ROOT` override remain supported while worktrees
+are in use; repository names do not authorize moving another session's files.

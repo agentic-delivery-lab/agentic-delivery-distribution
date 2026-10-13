@@ -26,9 +26,10 @@
     {
       "id": "primitives",
       "kind": "git",
-      "repository": "agentic-delivery-lab/agentic-delivery-primitives",
+      "repository": "agentic-delivery-lab/agentic-delivery-agent-customizations",
       "commit": "01dc8df9eae5ee8394d05246dbf9ccdcddaa7c9e",
-      "verified": true
+      "verified": false,
+      "repositoryId": 1380894656
     },
     {
       "id": "distribution-workflow",

@@ -11,6 +11,18 @@ function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
 }
 
+export function validateCapabilitySourceIdentity(lock) {
+  if (lock?.schemaVersion === 1) {
+    return lock.primitiveRepository === 'agentic-delivery-lab/agentic-delivery-primitives'
+      && !Object.hasOwn(lock, 'primitiveRepositoryId') ? [] : ['historical capabilities v1 source identity is invalid'];
+  }
+  if (lock?.schemaVersion === 2) {
+    return lock.primitiveRepository === 'agentic-delivery-lab/agentic-delivery-agent-customizations'
+      && lock.primitiveRepositoryId === 1380894656 ? [] : ['capabilities v2 source identity must be the current Customizations name and repository ID 1380894656'];
+  }
+  return ['capabilities lock schemaVersion must be supported (1 or 2)'];
+}
+
 export async function validateDistribution(repositoryRoot = root) {
   const errors = [];
   const bundle = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/workflow-bundle.json'), 'utf8'));
@@ -55,14 +67,19 @@ export async function validateDistribution(repositoryRoot = root) {
   const lockedArchitecture = (sources.sources ?? []).find((source) => source.id === 'architecture');
   if (!lockedArchitecture || lockedArchitecture.commit !== bundle.architecture?.commit) errors.push('workflow bundle and source lock must pin the same Architecture commit');
   const capabilities = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/capabilities.lock.json'), 'utf8'));
-  const capabilitiesSchema = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/capabilities-lock.v1.schema.json'), 'utf8'));
-  if (capabilities.$schema !== './capabilities-lock.v1.schema.json' || capabilitiesSchema.title !== 'Agentic Delivery capabilities lock v1') errors.push('capabilities lock must identify its local schema');
-  if (capabilities.schemaVersion !== 1 || capabilities.status !== 'draft') errors.push('capabilities lock must be schemaVersion 1 draft');
-  if (capabilities.primitiveRepository !== 'agentic-delivery-lab/agentic-delivery-primitives') errors.push('capabilities lock primitive repository is invalid');
+  const capabilityVersion = [1, 2].includes(capabilities.schemaVersion) ? capabilities.schemaVersion : null;
+  errors.push(...validateCapabilitySourceIdentity(capabilities));
+  if (capabilityVersion !== null) {
+    const capabilitiesSchema = JSON.parse(await readFile(path.join(repositoryRoot, `manifests/capabilities-lock.v${capabilityVersion}.schema.json`), 'utf8'));
+    if (capabilities.$schema !== `./capabilities-lock.v${capabilityVersion}.schema.json`
+      || capabilitiesSchema.title !== `Agentic Delivery capabilities lock v${capabilityVersion}`) errors.push('capabilities lock must identify its local schema');
+  }
+  if (capabilities.status !== 'draft') errors.push('capabilities lock must remain draft before release admission');
   if (!/^urn:agentic-delivery:primitive-release:\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(capabilities.primitiveRelease ?? '')) errors.push('capabilities lock primitive release is invalid');
   if (!/^[0-9a-f]{40}$/.test(capabilities.sourceCommit ?? '') || !/^[0-9a-f]{64}$/.test(capabilities.contentSha256 ?? '')) errors.push('capabilities lock must pin Primitive source commit and content digest');
   const lockedPrimitives = (sources.sources ?? []).find((source) => source.id === 'primitives');
   if (!lockedPrimitives || lockedPrimitives.commit !== capabilities.sourceCommit || lockedPrimitives.repository !== capabilities.primitiveRepository) errors.push('source lock and capabilities lock must pin the same Primitive source');
+  if (capabilityVersion === 2 && lockedPrimitives?.repositoryId !== capabilities.primitiveRepositoryId) errors.push('source lock and capabilities lock must bind the same Customizations repository ID');
   const lockedWorkflow = (sources.sources ?? []).find((source) => source.id === 'distribution-workflow');
   if (!lockedWorkflow || lockedWorkflow.commit !== bundle.workflowSource?.commit) errors.push('workflow bundle and source lock must pin the same workflow source commit');
   const consumerWorkflow = await readFile(path.join(repositoryRoot, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8');

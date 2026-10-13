@@ -151,12 +151,19 @@ test('agent promotion creates a provenance-complete projection and replaces only
   const promoted = await promoteAgentProjections({ primitiveRoot, privateRoot, promotedAt: '2026-09-21T12:00:00Z' });
   assert.equal(promoted.applied, true);
   const lock = JSON.parse(await readFile(path.join(privateRoot, 'provenance/agents.lock.json'), 'utf8'));
+  assert.equal(lock.schemaVersion, 2);
+  assert.equal(lock.canonicalRepository, 'agentic-delivery-lab/agentic-delivery-agent-customizations');
+  assert.equal(lock.canonicalRepositoryId, 1380894656);
+  assert.equal(lock.agents[0].sourceRepository, lock.canonicalRepository);
+  assert.equal(lock.agents[0].sourceRepositoryId, lock.canonicalRepositoryId);
   assert.equal(lock.agents[0].primitiveId, 'urn:agentic-delivery:primitive:example-reviewer');
   assert.equal(lock.agents[0].sourceRef, lock.agents[0].sourceCommit);
   assert.equal(await readFile(path.join(privateRoot, 'agents/example-reviewer.agent.md'), 'utf8'), source);
 
   await writeFile(path.join(privateRoot, 'agents/stale.agent.md'), '---\nname: stale\ndescription: Stale\ntools: [codebase]\n---\n');
-  const staleLock = { ...lock, agents: [{
+  const staleLock = { ...lock, schemaVersion: 1,
+    $schema: 'https://github.com/agentic-delivery-lab/agentic-delivery/blob/main/schemas/agent-publication-lock.v1.schema.json',
+    canonicalRepository: 'agentic-delivery-lab/agentic-delivery-primitives', agents: [{
     primitiveId: 'urn:agentic-delivery:primitive:stale',
     agentId: 'stale',
     targetPath: 'agents/stale.agent.md',
@@ -170,6 +177,7 @@ test('agent promotion creates a provenance-complete projection and replaces only
     promotedAt: '2026-09-21T12:00:00Z',
     compatibilityTargets: ['github-copilot'],
   }] };
+  delete staleLock.canonicalRepositoryId;
   await writeFile(path.join(privateRoot, 'provenance/agents.lock.json'), JSON.stringify(staleLock));
   await assert.rejects(promoteAgentProjections({ primitiveRoot, privateRoot }), /Agent projection conflicts/);
 });

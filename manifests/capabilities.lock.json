@@ -1,10 +1,11 @@
 {
-  "$schema": "./capabilities-lock.v1.schema.json",
-  "schemaVersion": 1,
+  "$schema": "./capabilities-lock.v2.schema.json",
+  "schemaVersion": 2,
   "status": "draft",
-  "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
+  "primitiveRepository": "agentic-delivery-lab/agentic-delivery-agent-customizations",
   "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.4",
   "sourceCommit": "01dc8df9eae5ee8394d05246dbf9ccdcddaa7c9e",
   "contentSha256": "36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0",
-  "capabilityPolicyVersion": "0.1.0"
+  "capabilityPolicyVersion": "0.1.0",
+  "primitiveRepositoryId": 1380894656
 }

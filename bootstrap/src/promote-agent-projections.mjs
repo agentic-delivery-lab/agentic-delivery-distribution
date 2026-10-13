@@ -10,6 +10,8 @@ const ADR_URI = /^urn:agentic-delivery:adr:[a-z0-9-]+$/;
 const PRIMITIVE_URI = /^urn:agentic-delivery:primitive:[a-z0-9-]+$/;
 const SEMVER = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const LOCK_PATH = 'provenance/agents.lock.json';
+const CUSTOMIZATIONS_REPOSITORY = 'agentic-delivery-lab/agentic-delivery-agent-customizations';
+const CUSTOMIZATIONS_REPOSITORY_ID = 1380894656;
 
 function digest(source) { return createHash('sha256').update(source, 'utf8').digest('hex'); }
 
@@ -79,8 +81,22 @@ async function loadRelease(primitiveRoot) {
 async function loadLock(privateRoot) {
   try { return JSON.parse(await regularFile(path.join(privateRoot, LOCK_PATH), 'publication lock')); }
   catch (error) {
-    if (error.code === 'ENOENT') return { schemaVersion: 1, canonicalRepository: 'agentic-delivery-lab/agentic-delivery-primitives', agents: [] };
+    if (error.code === 'ENOENT') return { schemaVersion: 2, canonicalRepository: CUSTOMIZATIONS_REPOSITORY, canonicalRepositoryId: CUSTOMIZATIONS_REPOSITORY_ID, agents: [] };
     throw error;
+  }
+}
+
+export function assertPublicationSourceIdentity(lock) {
+  const historical = lock?.schemaVersion === 1
+    && lock.canonicalRepository === 'agentic-delivery-lab/agentic-delivery-primitives'
+    && !Object.hasOwn(lock, 'canonicalRepositoryId');
+  const current = lock?.schemaVersion === 2 && lock.canonicalRepository === CUSTOMIZATIONS_REPOSITORY
+    && lock.canonicalRepositoryId === CUSTOMIZATIONS_REPOSITORY_ID;
+  if ((!historical && !current) || !Array.isArray(lock.agents)) throw new Error('Publication source identity is unsupported or mismatched.');
+  for (const record of lock.agents) {
+    if (record?.sourceRepository !== lock.canonicalRepository
+      || (current && record.sourceRepositoryId !== CUSTOMIZATIONS_REPOSITORY_ID)
+      || (historical && Object.hasOwn(record, 'sourceRepositoryId'))) throw new Error('Publication record source identity does not match its lock.');
   }
 }
 
@@ -106,7 +122,8 @@ export async function promotionPlan({ primitiveRoot, privateRoot, promotedAt = n
     primitiveId: agent.primitiveId,
     agentId: agent.agentId,
     targetPath: `agents/${agent.agentId}.agent.md`,
-    sourceRepository: 'agentic-delivery-lab/agentic-delivery-primitives',
+    sourceRepository: CUSTOMIZATIONS_REPOSITORY,
+    sourceRepositoryId: CUSTOMIZATIONS_REPOSITORY_ID,
     sourceCommit: release.sourceCommit.toLowerCase(),
     sourceRef: release.sourceCommit.toLowerCase(),
     contentSha256: digest(agent.source),
@@ -123,6 +140,7 @@ export async function promotionPlan({ primitiveRoot, privateRoot, promotedAt = n
     ids.add(agent.agentId);
   }
   const oldLock = await loadLock(privateRoot);
+  assertPublicationSourceIdentity(oldLock);
   const oldByPath = new Map((oldLock.agents ?? []).map((record) => [record.targetPath, record]));
   const newByPath = new Map(agents.map((agent) => [agent.targetPath, agent]));
   const actions = [];
@@ -141,9 +159,10 @@ export async function promotionPlan({ primitiveRoot, privateRoot, promotedAt = n
     actions.push({ targetPath, action: digest(current) === oldRecord.contentSha256 ? 'remove' : 'stale-conflict' });
   }
   const lock = {
-    $schema: 'https://github.com/agentic-delivery-lab/agentic-delivery/blob/main/schemas/agent-publication-lock.v1.schema.json',
-    schemaVersion: 1,
-    canonicalRepository: 'agentic-delivery-lab/agentic-delivery-primitives',
+    $schema: 'https://github.com/agentic-delivery-lab/agentic-delivery/blob/main/schemas/agent-publication-lock.v2.schema.json',
+    schemaVersion: 2,
+    canonicalRepository: CUSTOMIZATIONS_REPOSITORY,
+    canonicalRepositoryId: CUSTOMIZATIONS_REPOSITORY_ID,
     agents: agents.map(({ source, ...record }) => record),
   };
   return { primitiveRoot: path.resolve(primitiveRoot), privateRoot: path.resolve(privateRoot), agents, actions, lock };

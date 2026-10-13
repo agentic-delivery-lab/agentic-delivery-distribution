@@ -60,9 +60,9 @@ enabled state, and schedule after import.
 The staged capabilities lock uses schema version 2 and the explicit source
 `agentic-delivery-lab/agentic-delivery-agent-customizations`, bound to repository
 ID `1380894656`. Version 1 remains available for immutable historical locks.
-The capability release ID, source commit and digest are unchanged; the renamed
-source remains unverified until hosting identity and explicit-name access are
-read back. This draft does not admit a compatible full release composition,
+The capability release ID, source commit and digest are unchanged. The
+renamed source identity and explicit-name access have been read back, and the
+digest reproduced using the exact pinned source tool. This draft does not admit a compatible full release composition,
 activate participants or establish Copilot publication entitlement.
 
 Agent-projection generation now emits publication lock version 2, with the
@@ -73,3 +73,12 @@ be admitted before using these projections; version 1 is not silently treated
 as version 2. Existing local checkout paths and the
 `AGENTIC_DELIVERY_PRIMITIVES_ROOT` override remain supported while worktrees
 are in use; repository names do not authorize moving another session's files.
+
+The development hosting profile is recorded in `.github/rulesets/`. Its
+mandatory main-branch PR/check rule has no bypass actors. A separate review
+rule permits only `sjefsharp` (native user ID `14937399`) to use the approved
+interactive development delegation through a pull request. Runner Apps do
+not inherit that exception. Live readback is required before claiming these
+files are enforcement. This reconciles the W13 prerequisite for current W05
+administration; it does not activate unattended merging or prove runner
+credential isolation.

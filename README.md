@@ -27,6 +27,8 @@ Bootstrap is explicit and local:
 pnpm bootstrap:plan    # inspect the three managed files; writes nothing
 pnpm bootstrap:apply   # create missing files and provenance lock
 pnpm bootstrap:apply -- --force  # overwrite reviewed local conflicts
+pnpm bootstrap:recover  # restore a process-interrupted installation
+pnpm bootstrap:rollback # explicitly restore the last changed installation
 ```
 
 The command reads only paths declared in `manifests/workflow-bundle.json`.
@@ -37,10 +39,37 @@ source SHA-256 values. A conflict is never silently overwritten.
 Manifest paths use portable ASCII names; case variants and overlapping targets
 are rejected, including aliases of the provenance lock.
 
-Run bootstrap in a trusted working tree with other writers stopped. These
-path checks do not isolate concurrent directory renames. An I/O failure after
-writes begin can still leave a partial installation; interrupted-update
-recovery and exact rollback are required before release admission.
+The current transaction profile requires Linux and a trusted local working
+tree on ext2/3/4, Btrfs, XFS, tmpfs or overlayfs, with other writers and consumers
+stopped. Other filesystem types are rejected before writes. Path checks do not isolate
+hostile concurrent directory renames. Before managed files change, bootstrap
+flushes a private `.agentic-delivery-bootstrap-transaction.json` containing
+the prior bytes, modes, presence and provenance lock. Ordinary write failures
+attempt automatic restoration; a killed process leaves the journal and blocks
+another apply until explicit recovery. Recovery and rollback preflight every
+recorded file and refuse intervening local edits, including permission changes.
+An unchanged repeat apply retains the previous rollback baseline. A successful
+changed apply retains rollback data for that operation; recovery does not undo
+a committed installation unless the user explicitly selects rollback.
+
+Rollback restores recorded files and removes only known newly created empty
+directories. Unrelated files are preserved. Keep the private journal until
+its rollback data is no longer needed. The verified boundary is process
+interruption on the local Linux profile, not storage failure or universal
+power-loss recovery; filesystem flush semantics depend on the OS and device.
+Managed release upgrades, source admission and the complete compatible release
+graph still require separate validation before release admission.
+
+Created directories are bound to their filesystem identities. Replaced or
+uncertain directories hold restoration and preserve the journal for inspection;
+bootstrap does not infer ownership from a matching directory name. The journal
+stays in the existing consumer root until file restoration and directory cleanup
+finish, so interruption during cleanup remains recoverable.
+Temporary files are also bound to recorded filesystem identities before their
+contents are written. Recovery removes only those identified files. Journal
+updates append checksummed records, allowing an incomplete final append to
+recover from its validated complete prefix; corrupt complete records hold for
+inspection. Unknown file or directory ownership is preserved and reported.
 
 Organization Copilot agent publication is a separate explicit operation:
 

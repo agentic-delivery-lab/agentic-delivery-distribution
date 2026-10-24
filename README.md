@@ -27,6 +27,8 @@ Bootstrap is explicit and local:
 pnpm bootstrap:plan    # inspect the three managed files; writes nothing
 pnpm bootstrap:apply   # create missing files and provenance lock
 pnpm bootstrap:apply -- --force  # overwrite reviewed local conflicts
+pnpm bootstrap:plan -- --update # preview changes against the prior ownership lock
+pnpm bootstrap:apply -- --update # replace/remove only unchanged prior-owned files
 pnpm bootstrap:recover  # restore a process-interrupted installation
 pnpm bootstrap:rollback # explicitly restore the last changed installation
 ```
@@ -38,6 +40,19 @@ writes `.agentic-delivery/distribution.lock.json` with the bundle pins and
 source SHA-256 values. A conflict is never silently overwritten.
 Manifest paths use portable ASCII names; case variants and overlapping targets
 are rejected, including aliases of the provenance lock.
+
+Managed update is a separate opt-in from force replacement. It requires a
+supported prior consumer lock and checks every prior-owned file against its
+recorded hash, including files retired by the new bundle. Local edits, missing
+owned files and new-path collisions stop the entire update before writing;
+matching bytes alone do not authorize adopting an unowned new path. Existing
+file permissions are retained during replacement, and clean retired files are
+removed through the same recovery transaction. Case-only target migrations
+require explicit handling. Update cannot be combined with force.
+When a journal records committed lock evidence, the prior lock must also match
+that content hash. Legacy version-1 ownership locks without journals remain usable;
+rolling back their first update restores that legacy state without inventing
+older rollback history.
 
 The current transaction profile requires Linux and a trusted local working
 tree on ext2/3/4, Btrfs, XFS, tmpfs or overlayfs, with other writers and consumers
@@ -51,14 +66,19 @@ recorded file and refuse intervening local edits, including permission changes.
 An unchanged repeat apply retains the previous rollback baseline. A successful
 changed apply retains rollback data for that operation; recovery does not undo
 a committed installation unless the user explicitly selects rollback.
+Each rollback also restores the preceding committed journal byte-for-byte.
+Repeating rollback therefore moves back one more changed installation; use
+recovery after an interrupted operation rather than blindly repeating rollback.
 
 Rollback restores recorded files and removes only known newly created empty
 directories. Unrelated files are preserved. Keep the private journal until
 its rollback data is no longer needed. The verified boundary is process
 interruption on the local Linux profile, not storage failure or universal
 power-loss recovery; filesystem flush semantics depend on the OS and device.
-Managed release upgrades, source admission and the complete compatible release
-graph still require separate validation before release admission.
+Ownership checks and synthetic upgrade tests do not admit a release source or
+prove native hosting identity. Source digests, supported version combinations
+and the complete compatible release graph still require separate validation
+before release admission.
 
 Created directories are bound to their filesystem identities. Replaced or
 uncertain directories hold restoration and preserve the journal for inspection;
@@ -70,6 +90,11 @@ contents are written. Recovery removes only those identified files. Journal
 updates append checksummed records, allowing an incomplete final append to
 recover from its validated complete prefix; corrupt complete records hold for
 inspection. Unknown file or directory ownership is preserved and reported.
+The private journal reader validates original schema-1 records and writes
+schema-2 records for explicit prior-history and lock-hash fields. Existing
+records remain intact; rollback to an older installation restores its original
+journal bytes. Older records that did not capture a lock hash do not acquire
+invented lock evidence. The consumer provenance lock remains schema version 1.
 
 Organization Copilot agent publication is a separate explicit operation:
 

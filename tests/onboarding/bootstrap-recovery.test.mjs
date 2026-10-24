@@ -112,6 +112,25 @@ test('idempotent second apply retains the first installation rollback baseline',
   await assertOriginal(state);
 });
 
+test('rolling back a changed later installation restores the preceding live rollback journal', async (t) => {
+  const state = await fixture(t);
+  await bootstrap.applyBootstrap({ distributionRoot, targetRoot: state.targetRoot, force: true });
+  const installedA = await snapshot(state.targetRoot);
+  const sourceB = path.join(path.dirname(state.targetRoot), 'synthetic-release-B');
+  await cp(path.join(distributionRoot, 'bootstrap/templates'), path.join(sourceB, 'bootstrap/templates'), { recursive: true });
+  await cp(path.join(distributionRoot, 'manifests'), path.join(sourceB, 'manifests'), { recursive: true });
+  const manifestPath = path.join(sourceB, 'manifests/workflow-bundle.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  manifest.bundleVersion = '0.1.0-synthetic-B';
+  await writeFile(manifestPath, JSON.stringify(manifest));
+  await writeFile(path.join(sourceB, 'bootstrap/templates/consumer/AGENTS.md'), 'Synthetic second release.\n');
+  await bootstrap.applyBootstrap({ distributionRoot: sourceB, targetRoot: state.targetRoot, force: true });
+  await requiredApi('rollbackBootstrap')({ targetRoot: state.targetRoot });
+  assert.deepEqual(await snapshot(state.targetRoot), installedA);
+  await requiredApi('rollbackBootstrap')({ targetRoot: state.targetRoot });
+  await assertOriginal(state);
+});
+
 test('later filesystem permission failure automatically restores earlier managed changes', {
   skip: process.platform === 'win32' || process.getuid?.() === 0
     ? 'A real POSIX EACCES fixture requires a non-root account' : false,

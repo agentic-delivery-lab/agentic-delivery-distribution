@@ -6,6 +6,7 @@ import path from 'node:path';
 // The existing consumer root survives restoration. A journal inside a newly
 // created directory could not outlive that directory's cleanup.
 export const JOURNAL_PATH = '.agentic-delivery-bootstrap-transaction.json';
+const CONSUMER_LOCK_PATH = '.agentic-delivery/distribution.lock.json';
 const MAX_JOURNAL_BYTES = 16 * 1024 * 1024;
 // Linux UAPI magic.h: ext2/3/4, Btrfs, XFS, tmpfs and overlayfs.
 const LOCAL_FILESYSTEM_TYPES = new Set([0xef53, 0x9123683e, 0x58465342, 0x01021994, 0x794c7630]);
@@ -74,26 +75,48 @@ export async function transactionState(root, io) {
   const bytes = Buffer.from(stored.content, 'base64');
   const complete = bytes.lastIndexOf(0x0a) + 1;
   let envelope;
+  const committedPrefixes = new Map();
+  let committedLockSha256 = null;
   try {
     if (!complete) throw new Error('No complete record');
+    let offset = 0;
     // An interrupted append may leave a final partial record. Every complete
     // record must validate; corruption is never silently skipped.
     for (const line of bytes.subarray(0, complete).toString('utf8').split('\n').slice(0, -1)) {
       envelope = JSON.parse(line);
-      if (envelope?.schemaVersion !== 1 || Object.keys(envelope).sort().join() !== 'payload,schemaVersion,sha256'
+      if (![1, 2].includes(envelope?.schemaVersion) || Object.keys(envelope).sort().join() !== 'payload,schemaVersion,sha256'
         || !envelope.payload || hash(JSON.stringify(envelope.payload)) !== envelope.sha256) throw new Error('Invalid record');
+      offset += Buffer.byteLength(line) + 1;
+      if (envelope.payload.status === 'committed') {
+        committedPrefixes.set(offset, envelope.payload.rootIdentity);
+        const lock = Array.isArray(envelope.payload.entries)
+          ? envelope.payload.entries.find((entry) => entry?.path === CONSUMER_LOCK_PATH) : null;
+        committedLockSha256 = envelope.payload.consumerLockSha256 ?? lock?.after?.sha256 ?? committedLockSha256;
+      }
     }
   }
   catch { throw new Error('Invalid bootstrap recovery journal; preserve it for inspection.'); }
-  const data = envelope?.payload;
-  if (envelope?.schemaVersion !== 1 || Object.keys(envelope).sort().join() !== 'payload,schemaVersion,sha256'
-    || !data || Object.keys(data).sort().join() !== 'createdDirectories,entries,rootIdentity,status,temporaryFiles'
-    || hash(JSON.stringify(data)) !== envelope.sha256
-    || !['prepared', 'committed', 'restoring'].includes(data.status)
+  const original = envelope.payload;
+  const legacy = envelope.schemaVersion === 1;
+  const expectedKeys = legacy ? 'createdDirectories,entries,rootIdentity,status,temporaryFiles'
+    : 'consumerLockSha256,createdDirectories,entries,priorJournalBytes,rootIdentity,status,temporaryFiles';
+  if (Object.keys(original).sort().join() !== expectedKeys) throw new Error('Invalid or unsupported bootstrap journal payload.');
+  const legacyLock = Array.isArray(original.entries) ? original.entries.find((entry) => entry?.path === CONSUMER_LOCK_PATH) : null;
+  // Original schema 1 never promised older rollback history. Preserve its
+  // bytes, derive only recorded lock evidence and add no invented checkpoint.
+  const data = legacy ? { ...original, priorJournalBytes: 0,
+    consumerLockSha256: legacyLock?.after?.sha256 ?? committedLockSha256 } : original;
+  const knownLock = typeof data.consumerLockSha256 === 'string' && /^[0-9a-f]{64}$/u.test(data.consumerLockSha256);
+  if (!['prepared', 'committed', 'restoring'].includes(data.status)
     || JSON.stringify(data.rootIdentity) !== JSON.stringify(await rootIdentity(root))
+    || (!knownLock && !(data.consumerLockSha256 === null && (legacy || data.status === 'restoring')))
     || !Array.isArray(data.entries) || data.entries.length === 0 || data.entries.length > 1024
     || !Array.isArray(data.createdDirectories) || data.createdDirectories.length > 4096
     || !Array.isArray(data.temporaryFiles) || data.temporaryFiles.length > 4096) throw new Error('Invalid bootstrap recovery journal.');
+  if (!Number.isSafeInteger(data.priorJournalBytes) || data.priorJournalBytes < 0 || data.priorJournalBytes >= complete
+    || (data.priorJournalBytes !== 0 && JSON.stringify(committedPrefixes.get(data.priorJournalBytes)) !== JSON.stringify(data.rootIdentity))) {
+    throw new Error('Invalid prior bootstrap journal boundary.');
+  }
   const paths = [];
   for (const entry of data.entries) {
     if (!entry || Object.keys(entry).sort().join() !== 'after,before,path') throw new Error('Invalid bootstrap recovery journal entry.');
@@ -130,7 +153,7 @@ export async function transactionState(root, io) {
 }
 
 async function save(root, payload, io) {
-  const bytes = Buffer.from(`${JSON.stringify({ schemaVersion: 1, payload, sha256: hash(JSON.stringify(payload)) })}\n`);
+  const bytes = Buffer.from(`${JSON.stringify({ schemaVersion: 2, payload, sha256: hash(JSON.stringify(payload)) })}\n`);
   const prefix = payload[VALID_BYTES] ?? 0;
   if (prefix + bytes.length > MAX_JOURNAL_BYTES) throw new Error('Bootstrap transaction exceeds the supported journal size bound.');
   const filename = await io.resolveFilePath(root, JOURNAL_PATH, 'journal append');
@@ -149,6 +172,7 @@ async function save(root, payload, io) {
 function temporaryOwnership(root, data, io) {
   return {
     async reserve(relative) {
+      if (data.temporaryFiles.length >= 4096) throw new Error('Bootstrap temporary ownership inventory exceeds the supported bound.');
       data.temporaryFiles.push({ path: relative, identity: null });
       await save(root, data, io);
     },
@@ -177,7 +201,7 @@ export async function restoreTransaction(root, { recovery = false } = {}, io) {
     if (recovery) return { restored: false };
     throw new Error('No bootstrap rollback journal exists.');
   }
-  if (data.status === 'committed' && recovery) throw new Error('Bootstrap committed successfully; use explicit rollback.');
+  if (data.status === 'committed' && recovery) throw new Error('No interrupted bootstrap requires recovery: the current journal is committed. Inspect the consumer lock before explicitly rolling back another completed installation.');
   if (data.status === 'prepared' && !recovery) throw new Error('Interrupted bootstrap requires explicit recovery.');
   for (const temporary of data.temporaryFiles) await ownedTemporary(root, temporary, io);
   for (const directory of data.createdDirectories) {
@@ -225,10 +249,17 @@ export async function restoreTransaction(root, { recovery = false } = {}, io) {
       if (!['ENOENT', 'ENOTEMPTY', 'EEXIST'].includes(error.code)) throw error;
     }
   }
-  // Delete the recovery record only after file restoration and all directory
-  // cleanup have either completed or preserved known nonempty directories.
+  // Restore the exact preceding committed journal, or remove the first one,
+  // only after all file restoration and directory cleanup have settled.
   const journal = await io.resolveFilePath(root, JOURNAL_PATH, 'recovery journal');
-  await rm(journal);
+  if (data.priorJournalBytes > 0) {
+    const handle = await open(journal, constants.O_WRONLY | constants.O_NOFOLLOW);
+    try {
+      if ((await handle.stat()).size !== data[OBSERVED_BYTES]) throw new Error('Bootstrap journal changed before final restoration.');
+      await handle.truncate(data.priorJournalBytes);
+      await handle.sync();
+    } finally { await handle.close(); }
+  } else await rm(journal);
   await io.syncDirectory(root);
   return { restored: true, files: data.entries.map((entry) => entry.path) };
 }
@@ -240,11 +271,13 @@ export async function applyTransaction(root, files, io) {
   for (const file of files) {
     const before = await snapshot(root, file.path, io);
     if ((before?.sha256 ?? null) !== file.expectedSha256) throw new Error(`Bootstrap target changed after planning: ${file.path}`);
-    const after = { content: file.content.toString('base64'), mode: file.mode ?? 0o644, sha256: hash(file.content) };
-    if (before?.sha256 === after.sha256) continue; // Preserve mode and last real rollback baseline on no-op apply.
+    if (file.expectedMode !== undefined && (before?.mode ?? null) !== file.expectedMode) throw new Error(`Bootstrap target mode changed after planning: ${file.path}`);
+    const after = file.content === null ? null : { content: file.content.toString('base64'), mode: file.mode ?? 0o644, sha256: hash(file.content) };
+    if (same(before, after) || (before && after && before.sha256 === after.sha256)) continue; // Preserve mode and rollback baseline on no-op apply.
     entries.push({ path: file.path, before, after });
   }
   if (entries.length === 0) return { changed: false };
+  if (entries.length > 1024) throw new Error('Bootstrap transaction exceeds the supported target count.');
   const missing = new Set();
   for (const relative of [...entries.map((entry) => entry.path), JOURNAL_PATH]) {
     for (let directory = path.posix.dirname(relative); directory !== '.'; directory = path.posix.dirname(directory)) {
@@ -253,7 +286,12 @@ export async function applyTransaction(root, files, io) {
       catch (error) { if (error.code === 'ENOENT') missing.add(directory); else throw error; }
     }
   }
+  if (missing.size > 4096) throw new Error('Bootstrap transaction exceeds the supported directory count.');
+  const consumerLock = files.find((file) => file.path === CONSUMER_LOCK_PATH);
+  if (!consumerLock || consumerLock.content === null) throw new Error('Bootstrap transaction must include its consumer ownership lock.');
   const data = { status: 'prepared', rootIdentity: await rootIdentity(root), entries, temporaryFiles: [],
+    consumerLockSha256: hash(consumerLock.content),
+    priorJournalBytes: prior?.[VALID_BYTES] ?? 0,
     createdDirectories: [...missing].sort((a, b) => a.split('/').length - b.split('/').length)
       .map((relative) => ({ path: relative, identity: null })) };
   data[VALID_BYTES] = prior?.[VALID_BYTES] ?? 0;
@@ -277,7 +315,11 @@ export async function applyTransaction(root, files, io) {
       await save(root, data, io);
     }
     for (const entry of entries) {
-      await io.atomicWrite(root, entry.path, Buffer.from(entry.after.content, 'base64'), entry.after.mode, temporaryOwnership(root, data, io));
+      if (entry.after === null) {
+        const filename = await io.resolveFilePath(root, entry.path, 'retired owned target');
+        await rm(filename);
+        await io.syncDirectory(path.dirname(filename));
+      } else await io.atomicWrite(root, entry.path, Buffer.from(entry.after.content, 'base64'), entry.after.mode, temporaryOwnership(root, data, io));
     }
     data.status = 'committed';
     await save(root, data, io);

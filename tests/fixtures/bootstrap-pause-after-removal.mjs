@@ -5,7 +5,7 @@ import path from 'node:path';
 
 const target = process.env.BOOTSTRAP_TEST_REMOVE_TARGET;
 const kind = process.env.BOOTSTRAP_TEST_REMOVE_KIND;
-if (!target || !path.isAbsolute(target) || !['directory', 'journal'].includes(kind) || typeof process.send !== 'function') throw new Error('Owned removal target, kind and IPC required.');
+if (!target || !path.isAbsolute(target) || !['directory', 'journal', 'file'].includes(kind) || typeof process.send !== 'function') throw new Error('Owned removal target, kind and IPC required.');
 const method = kind === 'directory' ? 'rmdir' : 'rm';
 const remove = fs.promises[method];
 fs.promises[method] = async (...args) => {

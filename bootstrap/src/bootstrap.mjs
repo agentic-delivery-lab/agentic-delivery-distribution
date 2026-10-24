@@ -13,8 +13,10 @@ function digest(content) {
 
 function safeRelativePath(value, label) {
   if (typeof value !== 'string' || value.length === 0 || path.isAbsolute(value)
-    || value.split(/[\\/]/u).some((part) => part === '..')) {
-    throw new Error(`${label} must be a non-empty relative path without parent traversal.`);
+    || !/^[A-Za-z0-9._/-]+$/u.test(value)
+    || value.split('/').some((part) => ['', '.', '..'].includes(part) || part.endsWith('.')
+      || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(part))) {
+    throw new Error(`${label} must be a canonical portable relative path without traversal or aliases.`);
   }
   return value;
 }
@@ -26,6 +28,32 @@ function resolveWithin(root, relative, label) {
   const relativeToRoot = path.relative(absoluteRoot, resolved);
   if (relativeToRoot === '' || relativeToRoot.startsWith(`..${path.sep}`) || path.isAbsolute(relativeToRoot)) {
     throw new Error(`${label} escapes its root.`);
+  }
+  return resolved;
+}
+
+/** Reject existing redirected ancestors. Requires a trusted single-writer tree;
+ * path-based Node operations do not isolate concurrent hostile renames. */
+async function resolveFilePath(root, relative, label) {
+  const resolved = resolveWithin(root, relative, label);
+  const absoluteRoot = path.resolve(root);
+  const rootStats = await lstat(absoluteRoot);
+  if (!rootStats.isDirectory() || rootStats.isSymbolicLink()) {
+    throw new Error(`${label} root violates the directory boundary.`);
+  }
+  const parent = path.dirname(resolved);
+  let directory = path.parse(parent).root;
+  for (const segment of parent.slice(directory.length).split(path.sep).filter(Boolean)) {
+    directory = path.join(directory, segment);
+    try {
+      const stats = await lstat(directory);
+      if (stats.isSymbolicLink() || !stats.isDirectory()) {
+        throw new Error(`${label} has a symbolic-link or non-directory boundary at ${directory}.`);
+      }
+    } catch (error) {
+      if (error.code === 'ENOENT') break;
+      throw error;
+    }
   }
   return resolved;
 }
@@ -48,8 +76,11 @@ async function existingTarget(targetPath) {
   }
 }
 
-async function atomicWrite(filePath, content) {
+async function atomicWrite(root, relative, content) {
+  const filePath = await resolveFilePath(root, relative, `target ${relative}`);
+  await existingTarget(filePath);
   await mkdir(path.dirname(filePath), { recursive: true, mode: 0o755 });
+  await resolveFilePath(root, relative, `target ${relative}`);
   const temporary = `${filePath}.tmp-${process.pid}-${Date.now()}`;
   try {
     await writeFile(temporary, content, { mode: 0o644, flag: 'wx' });
@@ -60,7 +91,8 @@ async function atomicWrite(filePath, content) {
 }
 
 export async function validateBootstrapManifest(root = repositoryRoot) {
-  const manifest = JSON.parse(await readFile(path.join(root, 'manifests/workflow-bundle.json'), 'utf8'));
+  const input = await resolveFilePath(root, 'manifests/workflow-bundle.json', 'manifest path');
+  const manifest = JSON.parse(await regularFile(input, 'manifest'));
   const errors = [];
   if (manifest.schemaVersion !== 1) errors.push('workflow bundle schemaVersion must be 1');
   if (!/^[0-9a-f]{40}$/.test(String(manifest.controlPlane?.commit ?? ''))) errors.push('control-plane commit must be immutable');
@@ -69,8 +101,16 @@ export async function validateBootstrapManifest(root = repositoryRoot) {
   if (!Array.isArray(manifest.architecture?.affectedIdentifiers) || manifest.architecture.affectedIdentifiers.length === 0) errors.push('architecture affected identifiers are required');
   if (!/^[0-9a-f]{40}$/.test(String(manifest.workflowSource?.commit ?? ''))) errors.push('workflow source commit must be immutable');
   if (!Array.isArray(manifest.files) || manifest.files.some((file) => !file?.target || !file?.source)) errors.push('workflow bundle files must have source and target');
+  const targets = [LOCK_RELATIVE_PATH];
   for (const file of manifest.files ?? []) {
-    if (file.target.includes('..') || file.target.startsWith('/')) errors.push(`unsafe consumer target: ${file.target}`);
+    safeRelativePath(file.source, 'source path');
+    // ASCII paths and case-folded comparisons conservatively reject aliases
+    // even when a consumer uses a case-insensitive filesystem.
+    const target = safeRelativePath(file.target, 'target path').toLowerCase();
+    if (targets.some((prior) => prior === target || prior.startsWith(`${target}/`) || target.startsWith(`${prior}/`))) {
+      errors.push(`overlapping or reserved consumer target path: ${target}`);
+    }
+    targets.push(target);
   }
   if (errors.length > 0) throw new Error(`distribution manifest check failed:\n${errors.join('\n')}`);
   return manifest;
@@ -83,10 +123,11 @@ export async function validateBootstrapManifest(root = repositoryRoot) {
  */
 export async function bootstrapPlan({ distributionRoot = repositoryRoot, targetRoot = process.cwd() } = {}) {
   const manifest = await validateBootstrapManifest(distributionRoot);
+  await resolveFilePath(targetRoot, LOCK_RELATIVE_PATH, 'consumer lock');
   const entries = [];
   for (const file of manifest.files) {
-    const sourcePath = resolveWithin(distributionRoot, file.source, `source ${file.source}`);
-    const targetPath = resolveWithin(targetRoot, file.target, `target ${file.target}`);
+    const sourcePath = await resolveFilePath(distributionRoot, file.source, `source ${file.source}`);
+    const targetPath = await resolveFilePath(targetRoot, file.target, `target ${file.target}`);
     const sourceContent = await regularFile(sourcePath, `source ${file.source}`);
     const target = await existingTarget(targetPath);
     const sourceSha256 = digest(sourceContent);
@@ -118,7 +159,8 @@ function lockFor({ manifest, entries }) {
 
 /**
  * Apply the thin consumer projection. The complete plan is checked for
- * conflicts before the first write, making a failed bootstrap non-partial.
+ * conflicts before the first write. Later I/O failures can still be partial;
+ * transaction recovery is not yet provided by this implementation.
  * Existing files require explicit `force`; the default is safe and
  * idempotent.
  */
@@ -129,7 +171,7 @@ export async function applyBootstrap({ distributionRoot = repositoryRoot, target
     throw new Error(`Bootstrap found local changes in managed files: ${conflicts.map((entry) => entry.target).join(', ')}. Re-run with force=true only after review.`);
   }
   const lock = lockFor(plan);
-  const lockPath = resolveWithin(plan.targetRoot, LOCK_RELATIVE_PATH, 'consumer lock');
+  const lockPath = await resolveFilePath(plan.targetRoot, LOCK_RELATIVE_PATH, 'consumer lock');
   const existingLock = await existingTarget(lockPath);
   const lockContent = Buffer.from(`${JSON.stringify(lock, null, 2)}\n`, 'utf8');
   if (existingLock.exists && digest(existingLock.content) !== digest(lockContent) && !force) {
@@ -138,11 +180,10 @@ export async function applyBootstrap({ distributionRoot = repositoryRoot, target
   if (dryRun) return { ...plan, lock, lockPath, applied: false };
   for (const entry of plan.entries) {
     if (entry.action === 'unchanged') continue;
-    const sourcePath = resolveWithin(distributionRoot, entry.source, `source ${entry.source}`);
-    const targetPath = resolveWithin(plan.targetRoot, entry.target, `target ${entry.target}`);
-    await atomicWrite(targetPath, await regularFile(sourcePath, `source ${entry.source}`));
+    const sourcePath = await resolveFilePath(distributionRoot, entry.source, `source ${entry.source}`);
+    await atomicWrite(plan.targetRoot, entry.target, await regularFile(sourcePath, `source ${entry.source}`));
   }
-  await atomicWrite(lockPath, lockContent);
+  await atomicWrite(plan.targetRoot, LOCK_RELATIVE_PATH, lockContent);
   return { ...plan, lock, lockPath, applied: true };
 }
 

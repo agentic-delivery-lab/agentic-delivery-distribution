@@ -30,9 +30,17 @@ pnpm bootstrap:apply -- --force  # overwrite reviewed local conflicts
 ```
 
 The command reads only paths declared in `manifests/workflow-bundle.json`.
-It preflights every target before writing, refuses symbolic-link targets, and
+It preflights every target before writing, refuses symbolic links in source,
+consumer and provenance paths (including their parent directories), and
 writes `.agentic-delivery/distribution.lock.json` with the bundle pins and
 source SHA-256 values. A conflict is never silently overwritten.
+Manifest paths use portable ASCII names; case variants and overlapping targets
+are rejected, including aliases of the provenance lock.
+
+Run bootstrap in a trusted working tree with other writers stopped. These
+path checks do not isolate concurrent directory renames. An I/O failure after
+writes begin can still leave a partial installation; interrupted-update
+recovery and exact rollback are required before release admission.
 
 Organization Copilot agent publication is a separate explicit operation:
 

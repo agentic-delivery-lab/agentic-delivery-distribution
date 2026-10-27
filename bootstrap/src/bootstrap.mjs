@@ -199,6 +199,24 @@ export async function validateBootstrapManifest(root = repositoryRoot) {
     targets.push(target);
   }
   if (errors.length > 0) throw new Error(`distribution manifest check failed:\n${errors.join('\n')}`);
+  const sourceLockPath = await resolveFilePath(root, 'manifests/sources.lock.json', 'source lock path');
+  const sourceLock = JSON.parse(await regularFile(sourceLockPath, 'source lock'));
+  if (!record(sourceLock) || sourceLock.schemaVersion !== 1 || sourceLock.status !== manifest.status
+    || !Array.isArray(sourceLock.sources)) throw new Error('Bootstrap source lock has an unsupported contract or bundle status.');
+  for (const [id, reference, repositoryId] of [
+    ['control-plane', manifest.controlPlane, 1358455028],
+    ['architecture', manifest.architecture, 1380894616],
+    ['distribution-workflow', manifest.workflowSource, 1358455028],
+  ]) {
+    const matches = sourceLock.sources.filter((source) => source?.id === id);
+    const source = matches[0];
+    if (matches.length !== 1 || source.kind !== 'git' || source.repository !== reference.repository
+      || source.repositoryId !== repositoryId || source.commit !== reference.commit || source.verified !== true) {
+      throw new Error(`Bootstrap source lock must bind exactly one verified ${id} to its canonical repository ID and bundle commit.`);
+    }
+  }
+  // Declared identity consistency only. A local verified flag is not native
+  // hosting evidence or producer content/release admission.
   return manifest;
 }
 

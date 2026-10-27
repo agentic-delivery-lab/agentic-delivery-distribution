@@ -29,7 +29,29 @@ const invalidManifests = [
   ['unknown source property', (m) => { m.workflowSource.futureAuthority = true; }],
 ];
 
-for (const [label, mutate] of invalidManifests) {
+const sourceLockCases = [
+  ...['control-plane', 'architecture', 'distribution-workflow'].map((id) => [
+    `wrong ${id} repository ID`, (lock) => { lock.sources.find((source) => source.id === id).repositoryId = 1; },
+  ]),
+  ['string repository ID', (lock) => { lock.sources[1].repositoryId = String(lock.sources[1].repositoryId); }],
+  ['missing repository ID', (lock) => { delete lock.sources[1].repositoryId; }],
+  ['wrong source repository', (lock) => { lock.sources[1].repository = 'unrelated/controller'; }],
+  ['moving source commit', (lock) => { lock.sources[1].commit = 'main'; }],
+  ['different immutable source commit', (lock) => { lock.sources[1].commit = 'a'.repeat(40); }],
+  ['array source commit', (lock) => { lock.sources[1].commit = [lock.sources[1].commit]; }],
+  ['unverified source', (lock) => { lock.sources[1].verified = false; }],
+  ['missing source', (lock) => { lock.sources.splice(1, 1); }],
+  ['duplicate source', (lock) => { lock.sources.push({ ...lock.sources[1] }); }],
+  ['unsupported source-lock version', (lock) => { lock.schemaVersion = 999; }],
+  ['withdrawn source lock', (lock) => { lock.status = 'withdrawn'; }],
+  ['different source-lock status', (lock) => { lock.status = 'released'; }],
+];
+
+const cases = [
+  ...invalidManifests.map(([label, mutate]) => [label, 'workflow-bundle.json', mutate]),
+  ...sourceLockCases.map(([label, mutate]) => [label, 'sources.lock.json', mutate]),
+];
+for (const [label, filename, mutate] of cases) {
   test(`bootstrap rejects ${label} before consumer writes, including force`, async (t) => {
     const owned = await mkdtemp(path.join(os.tmpdir(), 'distribution-manifest-'));
     t.after(() => rm(owned, { recursive: true, force: true }));
@@ -41,12 +63,12 @@ for (const [label, mutate] of invalidManifests) {
     await cp(path.join(root, 'manifests'), path.join(source, 'manifests'), { recursive: true });
     await cp(path.join(root, 'bootstrap/templates'), path.join(source, 'bootstrap/templates'), { recursive: true });
     await writeFile(path.join(consumer, 'AGENTS.md'), 'Owner instructions.\n');
-    const manifestPath = path.join(source, 'manifests/workflow-bundle.json');
+    const manifestPath = path.join(source, 'manifests', filename);
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
     mutate(manifest);
     await writeFile(manifestPath, JSON.stringify(manifest));
     for (const force of [true, false]) {
-      await assert.rejects(applyBootstrap({ distributionRoot: source, targetRoot: consumer, force }), /manifest|contract|repository|bundle|identifier|mode/i);
+      await assert.rejects(applyBootstrap({ distributionRoot: source, targetRoot: consumer, force }), /manifest|contract|repository|bundle|identifier|mode|source lock/i);
       assert.deepEqual(await readdir(consumer), ['AGENTS.md']);
       assert.equal(await readFile(path.join(consumer, 'AGENTS.md'), 'utf8'), 'Owner instructions.\n');
     }

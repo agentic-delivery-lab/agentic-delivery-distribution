@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- Bootstrap refuses missing, duplicate, unverified or mismatched source-lock
+  bindings before consumer writes. Each interface must declare the expected
+  numeric repository ID and exact bundle commit; force cannot bypass the check.
+  Local declarations do not provide live hosting or release admission.
+
 - Bootstrap rejects malformed source provenance, unsupported controller contract
   versions and withdrawn bundles before reading projection bytes or writing
   consumer files. Force replacement cannot bypass manifest validation. Native

@@ -20,7 +20,14 @@ test('distribution bundle is thin, pinned, and draft until source promotion', as
 test('a fully verified draft source lock is valid before release promotion', async (t) => {
   const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'agentic-distribution-verified-draft-'));
   t.after(() => rm(temporaryRoot, { recursive: true, force: true }));
-  await import('node:fs/promises').then(({ cp }) => cp(root, temporaryRoot, { recursive: true }));
+  // Copy only validator data, never a source checkout, .git or dependencies.
+  for (const relative of ['manifests', '.devcontainer', 'bootstrap/templates',
+    'features/src/agentic-delivery/devcontainer-feature.json', 'packages/agent-plugin/plugin.json',
+    'packages/agent-plugin/automations']) {
+    const destination = path.join(temporaryRoot, relative);
+    await mkdir(path.dirname(destination), { recursive: true });
+    await import('node:fs/promises').then(({ cp }) => cp(path.join(root, relative), destination, { recursive: true }));
+  }
   const lockPath = path.join(temporaryRoot, 'manifests/sources.lock.json');
   const lock = JSON.parse(await readFile(lockPath, 'utf8'));
   for (const source of lock.sources) source.verified = true;

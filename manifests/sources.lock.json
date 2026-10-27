@@ -14,14 +14,16 @@
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery",
       "commit": "7d38227f7f8d8377ed7cd1b883d90b71b69bfc9b",
-      "verified": true
+      "verified": true,
+      "repositoryId": 1358455028
     },
     {
       "id": "architecture",
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery-architecture",
       "commit": "9d4872c39e9c52075a7a299ad4584ac3eb704a1b",
-      "verified": true
+      "verified": true,
+      "repositoryId": 1380894616
     },
     {
       "id": "primitives",
@@ -36,7 +38,8 @@
       "kind": "git",
       "repository": "agentic-delivery-lab/agentic-delivery",
       "commit": "204cd775705ea77737daafb95954019e528752eb",
-      "verified": true
+      "verified": true,
+      "repositoryId": 1358455028
     }
   ]
 }

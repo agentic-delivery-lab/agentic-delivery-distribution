@@ -44,7 +44,14 @@ and the exact controller contract tuple (event envelope 1, lifecycle 1.0.0,
 state machine 1.0.0). Unknown contracts and withdrawn bundles are rejected,
 including when force replacement is requested. These local metadata checks do
 not prove native hosting identity or reproduce producer content digests;
-release admission remains a separate requirement.
+release admission remains a separate requirement. The source lock must also
+bind each bootstrap interface (controller, Architecture and workflow source) to
+exactly one verified Git row with the canonical numeric repository ID and the
+same immutable commit as the bundle. Missing IDs, duplicate rows or mismatches
+hold installation, including force replacement; older source bundles without
+these bindings require a reviewed compatible source lock. This checks declared
+identity consistency, not live hosting identity. Historical consumer rollback
+and recovery do not require a source lock and retain their existing readers.
 Manifest paths use portable ASCII names; case variants and overlapping targets
 are rejected, including aliases of the provenance lock.
 

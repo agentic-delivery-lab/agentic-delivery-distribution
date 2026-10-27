@@ -37,7 +37,14 @@ The command reads only paths declared in `manifests/workflow-bundle.json`.
 It preflights every target before writing, refuses symbolic links in source,
 consumer and provenance paths (including their parent directories), and
 writes `.agentic-delivery/distribution.lock.json` with the bundle pins and
-source SHA-256 values. A conflict is never silently overwritten.
+source SHA-256 values. A conflict is never silently overwritten. Before file planning,
+bootstrap validates the supported workflow-bundle v1 shape, canonical source
+repository names, typed immutable commits and Architecture digest, file modes,
+and the exact controller contract tuple (event envelope 1, lifecycle 1.0.0,
+state machine 1.0.0). Unknown contracts and withdrawn bundles are rejected,
+including when force replacement is requested. These local metadata checks do
+not prove native hosting identity or reproduce producer content digests;
+release admission remains a separate requirement.
 Manifest paths use portable ASCII names; case variants and overlapping targets
 are rejected, including aliases of the provenance lock.
 

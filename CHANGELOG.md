@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Bootstrap rejects malformed source provenance, unsupported controller contract
+  versions and withdrawn bundles before reading projection bytes or writing
+  consumer files. Force replacement cannot bypass manifest validation. Native
+  repository identity and producer content admission remain separate gates.
+
 ### Changed
 
 - The draft bundle advances to `0.1.0-draft.25`, pinning Architecture

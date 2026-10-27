@@ -153,13 +153,40 @@ export async function validateBootstrapManifest(root = repositoryRoot) {
   const input = await resolveFilePath(root, 'manifests/workflow-bundle.json', 'manifest path');
   const manifest = JSON.parse(await regularFile(input, 'manifest'));
   const errors = [];
-  if (manifest.schemaVersion !== 1) errors.push('workflow bundle schemaVersion must be 1');
-  if (!/^[0-9a-f]{40}$/.test(String(manifest.controlPlane?.commit ?? ''))) errors.push('control-plane commit must be immutable');
-  if (!/^[0-9a-f]{40}$/.test(String(manifest.architecture?.commit ?? ''))) errors.push('architecture commit must be immutable');
-  if (!/^[0-9a-f]{64}$/.test(String(manifest.architecture?.contentSha256 ?? ''))) errors.push('architecture content digest must be immutable');
-  if (!Array.isArray(manifest.architecture?.affectedIdentifiers) || manifest.architecture.affectedIdentifiers.length === 0) errors.push('architecture affected identifiers are required');
-  if (!/^[0-9a-f]{40}$/.test(String(manifest.workflowSource?.commit ?? ''))) errors.push('workflow source commit must be immutable');
-  if (!Array.isArray(manifest.files) || manifest.files.some((file) => !file?.target || !file?.source)) errors.push('workflow bundle files must have source and target');
+  const record = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const keys = (value, required, allowed = required) => record(value)
+    && required.every((key) => Object.hasOwn(value, key))
+    && Object.keys(value).every((key) => allowed.includes(key));
+  const sha = (value, length) => typeof value === 'string'
+    && (length === 40 ? /^[0-9a-f]{40}$/u : /^[0-9a-f]{64}$/u).test(value);
+  const source = (value, repository, extra = []) => keys(value, ['repository', 'commit', ...extra])
+    && value.repository === repository && sha(value.commit, 40);
+  const required = ['schemaVersion', 'bundleVersion', 'status', 'controlPlane', 'architecture', 'workflowSource', 'files'];
+  if (!keys(manifest, required, [...required, '$schema']) || manifest.schemaVersion !== 1) {
+    throw new Error('distribution manifest must use the supported workflow bundle v1 contract.');
+  }
+  if (typeof manifest.bundleVersion !== 'string' || !manifest.bundleVersion.trim()
+    || manifest.bundleVersion.length > 128) errors.push('bundle version must be a nonempty bounded string');
+  if (!['draft', 'released'].includes(manifest.status)) errors.push('bundle status must be draft or released; withdrawn bundles cannot be installed');
+  if (!source(manifest.controlPlane, 'agentic-delivery-lab/agentic-delivery', ['contracts'])) errors.push('control-plane repository and immutable commit must match the supported source contract');
+  const contracts = manifest.controlPlane?.contracts;
+  if (!keys(contracts, ['eventEnvelope', 'lifecycle', 'stateMachine'])
+    || contracts.eventEnvelope !== 1 || contracts.lifecycle !== '1.0.0' || contracts.stateMachine !== '1.0.0') {
+    errors.push('control-plane contract versions must be eventEnvelope 1, lifecycle 1.0.0 and stateMachine 1.0.0');
+  }
+  if (!source(manifest.architecture, 'agentic-delivery-lab/agentic-delivery-architecture', ['contentSha256', 'affectedIdentifiers'])
+    || !sha(manifest.architecture?.contentSha256, 64)) errors.push('Architecture repository, immutable commit and content digest must match the supported source contract');
+  const identifiers = manifest.architecture?.affectedIdentifiers;
+  if (!Array.isArray(identifiers) || !identifiers.length
+    || identifiers.some((id) => typeof id !== 'string' || !id.trim())) errors.push('Architecture affected identifiers must be nonempty strings');
+  if (!source(manifest.workflowSource, 'agentic-delivery-lab/agentic-delivery')) errors.push('workflow repository and immutable commit must match the supported source contract');
+  if (!Array.isArray(manifest.files) || !manifest.files.length || manifest.files.length > 1024
+    || manifest.files.some((file) => !keys(file, ['source', 'target', 'mode']) || !['managed', 'generated'].includes(file.mode))) {
+    errors.push('workflow bundle files must use the supported source, target and mode contract');
+  }
+  // Reject malformed structures before path iteration and before reading any
+  // source bytes or consumer files. Force replacement cannot bypass this gate.
+  if (errors.length) throw new Error(`distribution manifest check failed:\n${errors.join('\n')}`);
   const targets = [LOCK_RELATIVE_PATH, JOURNAL_PATH];
   for (const file of manifest.files ?? []) {
     safeRelativePath(file.source, 'source path');

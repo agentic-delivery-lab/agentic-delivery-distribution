@@ -18,7 +18,7 @@ async function git(directory, ...args) {
   return (await exec('git', ['--no-replace-objects', '--no-lazy-fetch', '-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', '-C', directory, ...args])).stdout.trim();
 }
 
-async function fixture(t, { corruptDigest = false, corruptWorkflow = false } = {}) {
+async function fixture(t, { corruptDigest = false, corruptWorkflow = false, releasedDistribution = false } = {}) {
   const callerRoots = { ...sourceRoots };
   const container = path.resolve(root, '../agentic-delivery-distribution.worktrees/owned-fixtures');
   await mkdir(container, { recursive: true });
@@ -31,6 +31,16 @@ async function fixture(t, { corruptDigest = false, corruptWorkflow = false } = {
   for (const relative of ['manifests', 'bootstrap/templates', 'packages/agent-plugin']) {
     await mkdir(path.dirname(path.join(distributionRoot, relative)), { recursive: true });
     await cp(path.join(root, relative), path.join(distributionRoot, relative), { recursive: true });
+  }
+  if (releasedDistribution) {
+    // Synthetic local publication declarations do not approve real producers.
+    for (const relative of ['manifests/workflow-bundle.json', 'manifests/sources.lock.json',
+      'manifests/capabilities.lock.json', 'manifests/automation-projections.lock.json', 'packages/agent-plugin/plugin.json']) {
+      const filename = path.join(distributionRoot, relative);
+      const value = JSON.parse(await readFile(filename, 'utf8'));
+      (relative.endsWith('plugin.json') ? value.extensions['io.github.agentic-delivery-lab'] : value).status = 'released';
+      await writeFile(filename, JSON.stringify(value));
+    }
   }
   if (corruptDigest) {
     const filename = path.join(distributionRoot, 'manifests/capabilities.lock.json');
@@ -112,4 +122,15 @@ test('wrong actual workflow pin holds force apply despite a matching comment', a
   const f = await fixture(t, { corruptWorkflow: true });
   await assert.rejects(applyBootstrap({ ...f, force: true }), /consumer workflow must separate/i);
   assert.deepEqual(await readdir(f.targetRoot), ['unrelated.txt']);
+});
+
+
+test('released local declarations cannot replace producer release admission', async (t) => {
+  const f = await fixture(t, { releasedDistribution: true });
+  const source = await validateBootstrapSources(f);
+  assert.equal(source.graph.status, 'passed');
+  assert.equal(source.releaseStatuses.filter((status) => status === 'draft').length, 2);
+  await assert.rejects(applyBootstrap({ ...f, force: true }), /requires released/i);
+  assert.deepEqual(await readdir(f.targetRoot), ['unrelated.txt']);
+  assert.equal(await readFile(path.join(f.targetRoot, 'unrelated.txt'), 'utf8'), 'Preserve owner bytes.\n');
 });

@@ -10,6 +10,8 @@
 
 ### Fixed
 
+- Validate coherent released Distribution candidates without promoting draft records.
+- Bind the Dev Container image and Dockerfile to the exact locked image digest.
 - Bootstrap apply now requires explicit native source admission, exact checkout
   bytes, accepted canonical ancestry, producer digests/compatible versions and
   released source/projection records. Force and caller flags cannot approve a

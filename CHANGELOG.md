@@ -2,11 +2,46 @@
 
 ## [Unreleased]
 
+### Removed
+
+- Retire the draft Dev Container Feature scaffold: its installer only checked
+  a commit string and printed a message. Use the explicit bootstrap workflow;
+  consumer bundle, provenance and rollback formats are unchanged.
+
+### Fixed
+
+- Bootstrap apply now requires explicit native source admission, exact checkout
+  bytes, accepted canonical ancestry, producer digests/compatible versions and
+  released source/projection records. Force and caller flags cannot approve a
+  draft. Apply uses committed snapshot data; local plans and offline restoration
+  retain their existing transaction formats. The current draft remains held.
+- Consumer workflow validation compares actual fields with selected pins;
+  comments containing the expected SHA no longer conceal a wrong workflow or
+  controller reference.
+
+- Bootstrap refuses missing, duplicate, unverified or mismatched source-lock
+  bindings before consumer writes. Each interface must declare the expected
+  numeric repository ID and exact bundle commit; force cannot bypass the check.
+  Local declarations do not provide live hosting or release admission.
+
+- Bootstrap rejects malformed source provenance, unsupported controller contract
+  versions and withdrawn bundles before reading projection bytes or writing
+  consumer files. Force replacement cannot bypass manifest validation. Native
+  repository identity and producer content admission remain separate gates.
+
 ### Changed
 
-- The draft bundle advances to `0.1.0-draft.25`, pinning Architecture
-  Authority draft8 at `9d4872c39e9c52075a7a299ad4584ac3eb704a1b` and its
-  reproducible content digest; draft24 remains the explicit rollback bundle.
+- Agent Plugin draft7 uses the standard 1.0 manifest with namespaced factory
+  provenance and only the two real manual automation projections. Retire empty
+  agent, skill and hook placeholders. Validate the publisher's supported subset;
+  client loading and release admission remain unproven.
+
+- Draft bundle `0.1.0-draft.26` selects controller draft67 runtime, Architecture
+  draft78 and Customizations draft15 with reproduced source digests and native
+  repository identities. Reviewed workflow source remains separate from runtime
+  source; Agent Plugin draft7 and byte-exact manual automation projections use
+  the same declared graph. Draft25 remains the prior ownership/rollback input;
+  these metadata updates do not grant install or runtime admission.
 
 - The draft bundle advances to `0.1.0-draft.24`, pinning Control Plane
   `0.2.0-draft.36` at `0ae64cb2b1560e7a9e73435e954e3be8bc3b2b88`; draft23

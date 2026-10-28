@@ -1,10 +1,11 @@
+// Projection/transaction tests use the mechanics layer, not source admission.
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 
-import { applyBootstrap, bootstrapPlan, validateBootstrapManifest } from '../../bootstrap/src/bootstrap.mjs';
+import { applyBootstrap, bootstrapPlan, validateBootstrapManifest } from '../../bootstrap/src/bootstrap-projection.mjs';
 import { promoteAgentProjections, promotionPlan } from '../../bootstrap/src/promote-agent-projections.mjs';
 import { validateDistribution } from '../../tools/validate-distribution.mjs';
 
@@ -12,15 +13,22 @@ const root = path.resolve(import.meta.dirname, '../..');
 
 test('distribution bundle is thin, pinned, and draft until source promotion', async () => {
   const result = await validateDistribution(root);
-  assert.deepEqual(result, { files: 3, sources: 5, automationTemplates: 2 });
+  assert.deepEqual(result, { files: 3, sources: 6, automationTemplates: 2 });
   const manifest = JSON.parse(await readFile(path.join(root, 'manifests/workflow-bundle.json'), 'utf8'));
-  assert.equal(manifest.bundleVersion, '0.1.0-draft.25');
+  assert.equal(manifest.bundleVersion, '0.1.0-draft.26');
 });
 
 test('a fully verified draft source lock is valid before release promotion', async (t) => {
   const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'agentic-distribution-verified-draft-'));
   t.after(() => rm(temporaryRoot, { recursive: true, force: true }));
-  await import('node:fs/promises').then(({ cp }) => cp(root, temporaryRoot, { recursive: true }));
+  // Copy only validator data, never a source checkout, .git or dependencies.
+  for (const relative of ['manifests', '.devcontainer', 'bootstrap/templates',
+    'packages/agent-plugin/plugin.json',
+    'packages/agent-plugin/automations']) {
+    const destination = path.join(temporaryRoot, relative);
+    await mkdir(path.dirname(destination), { recursive: true });
+    await import('node:fs/promises').then(({ cp }) => cp(path.join(root, relative), destination, { recursive: true }));
+  }
   const lockPath = path.join(temporaryRoot, 'manifests/sources.lock.json');
   const lock = JSON.parse(await readFile(lockPath, 'utf8'));
   for (const source of lock.sources) source.verified = true;
@@ -32,21 +40,23 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
   const manifest = await validateBootstrapManifest(root);
   assert.equal(manifest.controlPlane.repository, 'agentic-delivery-lab/agentic-delivery');
   assert.equal(manifest.architecture.repository, 'agentic-delivery-lab/agentic-delivery-architecture');
-  assert.equal(manifest.architecture.contentSha256, 'ac4430f7aa86c016c51ea8f9458627d4412d36256960c1bf54b63e851dc2350c');
+  assert.equal(manifest.architecture.contentSha256, '02f150dfd46b8c304f61196ff65d7f8a05adc0cc151402573b10803491ac4550');
   assert.deepEqual(manifest.architecture.affectedIdentifiers, ['urn:agentic-delivery:architecture:authority']);
   assert.notEqual(manifest.workflowSource.commit, manifest.controlPlane.commit);
   assert.equal(manifest.files.every((file) => file.mode === 'managed'), true);
-  const plugin = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8')));
-  assert.equal(plugin.generatedFrom.primitiveSourceCommit, '01dc8df9eae5ee8394d05246dbf9ccdcddaa7c9e');
-  assert.equal(plugin.generatedFrom.primitiveContentSha256, '36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0');
-  assert.equal(plugin.generatedFrom.architectureCommit, '9d4872c39e9c52075a7a299ad4584ac3eb704a1b');
-  assert.equal(plugin.generatedFrom.architectureContentSha256, 'ac4430f7aa86c016c51ea8f9458627d4412d36256960c1bf54b63e851dc2350c');
-  assert.equal(plugin.generatedFrom.automationSourceCommit, '7d38227f7f8d8377ed7cd1b883d90b71b69bfc9b');
+  const packageManifest = JSON.parse(await readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8'));
+  assert.equal(packageManifest.$schema, 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json');
+  const plugin = packageManifest.extensions['io.github.agentic-delivery-lab'];
+  assert.equal(plugin.generatedFrom.primitiveSourceCommit, '69beab027d8b28fc082fa6054f4def5ba0146e3c');
+  assert.equal(plugin.generatedFrom.primitiveContentSha256, '4b6c07deb6f7be8f495244e3c50a528054528db1fdec5a5a14ea4cfdda5bb34e');
+  assert.equal(plugin.generatedFrom.architectureCommit, '59df514a3a6dc8a75b79b3fc75fe61aae4e6fdf3');
+  assert.equal(plugin.generatedFrom.architectureContentSha256, '02f150dfd46b8c304f61196ff65d7f8a05adc0cc151402573b10803491ac4550');
+  assert.equal(plugin.generatedFrom.automationSourceCommit, '98495275481aff381180771da6eba9da95bc7816');
 });
 
 test('Agent Plugin automation projections are hash-pinned and manual', async () => {
   const lock = JSON.parse(await readFile(path.join(root, 'manifests/automation-projections.lock.json'), 'utf8'));
-  assert.equal(lock.sourceCommit, '7d38227f7f8d8377ed7cd1b883d90b71b69bfc9b');
+  assert.equal(lock.sourceCommit, '98495275481aff381180771da6eba9da95bc7816');
   assert.deepEqual(lock.templates.map((template) => template.id), ['review-delivery-queue', 'prepare-validation-evidence']);
   for (const template of lock.templates) {
     const projected = await readFile(path.join(root, template.targetPath), 'utf8');
@@ -58,14 +68,14 @@ test('Agent Plugin automation projections are hash-pinned and manual', async () 
 
 test('consumer workflow delegates only to the secret-free pinned contract workflow', async () => {
   const workflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8'));
-  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@204cd775705ea77737daafb95954019e528752eb'));
-  assert.ok(workflow.includes('controller_commit: 7d38227f7f8d8377ed7cd1b883d90b71b69bfc9b'));
+  assert.ok(workflow.includes('/.github/workflows/agentic-delivery-quality.yml@4d7448c0d628bd591d16c57082204391f1faeffd'));
+  assert.ok(workflow.includes('controller_commit: 98495275481aff381180771da6eba9da95bc7816'));
   assert.ok(!workflow.includes('secrets:'));
   assert.match(workflow, /jobs:\n  control-plane-contract:\n    uses:/);
   assert.match(workflow, /    with:\n      controller_commit:/);
   const architectureWorkflow = await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8'));
-  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@204cd775705ea77737daafb95954019e528752eb'));
-  assert.ok(architectureWorkflow.includes('architecture_commit: 9d4872c39e9c52075a7a299ad4584ac3eb704a1b'));
+  assert.ok(architectureWorkflow.includes('/.github/workflows/agentic-delivery-architecture-review.yml@4d7448c0d628bd591d16c57082204391f1faeffd'));
+  assert.ok(architectureWorkflow.includes('architecture_commit: 59df514a3a6dc8a75b79b3fc75fe61aae4e6fdf3'));
   assert.ok(architectureWorkflow.includes("affected_identifiers: '[\"urn:agentic-delivery:architecture:authority\"]'"));
   assert.match(architectureWorkflow, /jobs:\n  architecture:\n    uses:/);
   assert.match(architectureWorkflow, /    with:\n      architecture_commit:/);
@@ -85,7 +95,7 @@ test('bootstrap projects only declared files, records provenance, and is idempot
   assert.match(lock.$schema, /consumer-distribution-lock\.v1\.schema\.json$/);
   assert.equal(lock.schemaVersion, 1);
   assert.equal(lock.files.length, 3);
-  assert.equal(lock.architecture.contentSha256, 'ac4430f7aa86c016c51ea8f9458627d4412d36256960c1bf54b63e851dc2350c');
+  assert.equal(lock.architecture.contentSha256, '02f150dfd46b8c304f61196ff65d7f8a05adc0cc151402573b10803491ac4550');
   const second = await applyBootstrap({ distributionRoot: root, targetRoot });
   assert.ok(second.entries.every((entry) => entry.action === 'unchanged'));
 });

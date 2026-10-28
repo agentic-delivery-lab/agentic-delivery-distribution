@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { lstat, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { VALIDATION_SOURCE_COMMIT } from '../bootstrap/src/bootstrap-admission.mjs';
+import { workflowProjectionErrors } from '../bootstrap/src/bootstrap-workflow-contract.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SHA1 = /^[0-9a-f]{40}$/;
@@ -9,6 +11,30 @@ const SHA256 = /^[0-9a-f]{64}$/;
 
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
+}
+
+// Validate this publisher's supported subset, not every upstream plugin feature.
+// Historical flat packages remain readable by the Control Plane release reader.
+export function validatePluginPackage(manifest) {
+  const record = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+  const exactKeys = (value, keys) => record(value)
+    && Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
+  const namespace = 'io.github.agentic-delivery-lab';
+  const projection = manifest?.extensions?.[namespace];
+  if (!exactKeys(manifest, ['$schema', 'name', 'version', 'description', 'extensions'])
+    || manifest.$schema !== 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json'
+    || manifest.name !== 'agentic-delivery'
+    || typeof manifest.version !== 'string' || !manifest.version.trim()
+    || typeof manifest.description !== 'string' || !manifest.description.trim()
+    || !exactKeys(manifest.extensions, [namespace])
+    || !exactKeys(projection, ['schemaVersion', 'id', 'status', 'generatedFrom', 'projections'])
+    || projection.schemaVersion !== 1 || projection.id !== manifest.name || projection.status !== 'draft'
+    || !record(projection.generatedFrom)
+    || !exactKeys(projection.projections, ['automations'])
+    || projection.projections.automations !== 'automations/') {
+    throw new Error('unsupported Agent Plugin package: expected the standard 1.0 draft manual-automation projection');
+  }
+  return projection;
 }
 
 export function validateCapabilitySourceIdentity(lock) {
@@ -52,6 +78,13 @@ export async function validateDistribution(repositoryRoot = root) {
   }
   const sources = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/sources.lock.json'), 'utf8'));
   if (sources.schemaVersion !== 1 || sources.status !== 'draft') errors.push('source lock must be schemaVersion 1 draft');
+  const validationSources = sources.sources?.filter((source) => source.id === 'source-validation') ?? [];
+  if (validationSources.length !== 1 || validationSources[0].kind !== 'git'
+    || validationSources[0].repository !== 'agentic-delivery-lab/agentic-delivery'
+    || validationSources[0].repositoryId !== 1358455028
+    || validationSources[0].commit !== VALIDATION_SOURCE_COMMIT || validationSources[0].verified !== true) {
+    errors.push('source lock must pin the accepted public validation tool source');
+  }
   const unverified = (sources.sources ?? []).filter((source) => source.verified !== true);
   if (sources.status === 'released' && unverified.length > 0) errors.push('released source lock must not contain unverified sources');
   const base = (sources.sources ?? []).find((source) => source.id === 'devcontainer-base-ubuntu-24.04');
@@ -83,15 +116,9 @@ export async function validateDistribution(repositoryRoot = root) {
   const lockedWorkflow = (sources.sources ?? []).find((source) => source.id === 'distribution-workflow');
   if (!lockedWorkflow || lockedWorkflow.commit !== bundle.workflowSource?.commit) errors.push('workflow bundle and source lock must pin the same workflow source commit');
   const consumerWorkflow = await readFile(path.join(repositoryRoot, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-quality.yml'), 'utf8');
-  if (!consumerWorkflow.includes(`@${bundle.workflowSource?.commit}`) || !consumerWorkflow.includes(`controller_commit: ${controlPlaneCommit}`)) errors.push('consumer workflow must separate workflow source and Control Plane pins');
-  if (!/^jobs:\n  control-plane-contract:\n    uses: agentic-delivery-lab\/agentic-delivery\/\.github\/workflows\/agentic-delivery-quality\.yml@[0-9a-f]{40}\n    with:\n      controller_commit: [0-9a-f]{40}\n/m.test(consumerWorkflow)) errors.push('consumer quality workflow must be structurally valid reusable-workflow YAML');
   const architectureWorkflow = await readFile(path.join(repositoryRoot, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8');
-  if (!architectureWorkflow.includes(`@${bundle.workflowSource?.commit}`) || !architectureWorkflow.includes(`architecture_commit: ${bundle.architecture?.commit}`) || !architectureWorkflow.includes(`affected_identifiers: '${JSON.stringify(bundle.architecture?.affectedIdentifiers)}'`)) errors.push('architecture review workflow must pin workflow source, Architecture, and affected identifiers separately');
-  if (!/^jobs:\n  architecture:\n    uses: agentic-delivery-lab\/agentic-delivery\/\.github\/workflows\/agentic-delivery-architecture-review\.yml@[0-9a-f]{40}\n    with:\n      architecture_commit: [0-9a-f]{40}\n      affected_identifiers: '[^']+'\n/m.test(architectureWorkflow)) errors.push('architecture review workflow must be structurally valid reusable-workflow YAML');
-  const feature = JSON.parse(await readFile(path.join(repositoryRoot, 'features/src/agentic-delivery/devcontainer-feature.json'), 'utf8'));
-  if (feature.options?.controlPlaneCommit?.default !== controlPlaneCommit) errors.push('Dev Container Feature must default to the workflow bundle Control Plane commit');
-  const plugin = JSON.parse(await readFile(path.join(repositoryRoot, 'packages/agent-plugin/plugin.json'), 'utf8'));
-  if (plugin.schemaVersion !== 1 || plugin.status !== 'draft') errors.push('Agent Plugin manifest must be schemaVersion 1 draft');
+  errors.push(...workflowProjectionErrors(bundle, consumerWorkflow, architectureWorkflow));
+  const plugin = validatePluginPackage(JSON.parse(await readFile(path.join(repositoryRoot, 'packages/agent-plugin/plugin.json'), 'utf8')));
   if (!/^[0-9a-f]{40}$/.test(plugin.generatedFrom?.primitiveSourceCommit ?? '')) errors.push('Agent Plugin must pin the Primitive source commit');
   if (!/^[0-9a-f]{40}$/.test(plugin.generatedFrom?.architectureCommit ?? '')) errors.push('Agent Plugin must pin the Architecture commit');
   if (plugin.generatedFrom?.primitiveRelease !== capabilities.primitiveRelease || plugin.generatedFrom?.primitiveSourceCommit !== capabilities.sourceCommit || plugin.generatedFrom?.primitiveContentSha256 !== capabilities.contentSha256) errors.push('Agent Plugin and capabilities lock must pin the same Primitive release and digest');

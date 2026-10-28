@@ -3,7 +3,7 @@
 This repository packages the executable developer environment and thin
 consumer integration for Agentic Delivery:
 
-- Dev Container and Feature definitions;
+- Dev Container configuration;
 - idempotent bootstrap into a consumer repository;
 - reusable workflow callers pinned to an immutable Control Plane commit; and
 - Agent Plugin projections from approved Primitive and Automation releases.
@@ -20,6 +20,11 @@ CI/CD.
 
 The local repository is a new-history scaffold. Publication and organization
 installation are separate operator actions.
+
+The draft Dev Container Feature has been retired because it installed no
+integration. Use the explicit bootstrap plan and apply commands below; the
+managed-file, provenance-lock and recovery formats are unchanged. Historical
+Feature source remains available at its original immutable commits.
 
 Bootstrap is explicit and local:
 

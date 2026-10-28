@@ -22,7 +22,7 @@ test('a fully verified draft source lock is valid before release promotion', asy
   t.after(() => rm(temporaryRoot, { recursive: true, force: true }));
   // Copy only validator data, never a source checkout, .git or dependencies.
   for (const relative of ['manifests', '.devcontainer', 'bootstrap/templates',
-    'features/src/agentic-delivery/devcontainer-feature.json', 'packages/agent-plugin/plugin.json',
+    'packages/agent-plugin/plugin.json',
     'packages/agent-plugin/automations']) {
     const destination = path.join(temporaryRoot, relative);
     await mkdir(path.dirname(destination), { recursive: true });

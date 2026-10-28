@@ -3,8 +3,8 @@
 ## Mission
 
 This repository distributes an executable developer environment and thin
-consumer integrations: Dev Container configuration, Dev Container Features,
-bootstrap tooling, Agent Plugin projections, and source locks.
+consumer integrations: Dev Container configuration, bootstrap tooling, Agent
+Plugin projections, and source locks.
 
 ## Boundaries
 

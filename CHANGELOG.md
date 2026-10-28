@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Removed
+
+- Retire the draft Dev Container Feature scaffold: its installer only checked
+  a commit string and printed a message. Use the explicit bootstrap workflow;
+  consumer bundle, provenance and rollback formats are unchanged.
+
 ### Fixed
 
 - Bootstrap refuses missing, duplicate, unverified or mismatched source-lock

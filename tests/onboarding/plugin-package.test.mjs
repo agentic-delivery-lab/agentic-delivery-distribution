@@ -29,7 +29,7 @@ for (const [label, change] of [
   ['foreign extension', (m) => { m.extensions['example.org'] = {}; }],
   ['conflicting factory version', (m) => { m.extensions[namespace].version = 'other'; }],
   ['unsupported factory contract', (m) => { m.extensions[namespace].schemaVersion = 2; }],
-  ['released claim', (m) => { m.extensions[namespace].status = 'released'; }],
+  ['withdrawn package', (m) => { m.extensions[namespace].status = 'withdrawn'; }],
   ['placeholder projection', (m) => { m.extensions[namespace].projections.skills = 'skills/'; }],
   ['unsafe automation path', (m) => { m.extensions[namespace].projections.automations = '../automations/'; }],
   ['array provenance', (m) => { m.extensions[namespace].generatedFrom = []; }],

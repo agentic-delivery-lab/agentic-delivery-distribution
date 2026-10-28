@@ -226,3 +226,18 @@ not inherit that exception. Live readback is required before claiming these
 files are enforcement. This reconciles the W13 prerequisite for current W05
 administration; it does not activate unattended merging or prove runner
 credential isolation.
+
+### Release-record validation
+
+The publisher validates coherent `draft` or `released` candidate data. Bundle,
+source lock, capability lock, automation lock and plugin projection must declare
+the same status. Withdrawn records cannot form a publishable candidate. A
+released candidate requires every inventoried source to be verified; the Dev
+Container image and single-FROM Dockerfile must select the exact locked base
+image and digest. A matching value in a comment or description is insufficient.
+
+This validation does not promote records or approve publication. The current
+records remain draft. Supported bootstrap writes additionally require native
+source binding, canonical producer compatibility/digest validation and released
+producer records. Release approval, actual client/tool-profile qualification and
+consumer install/update/recovery/rollback evidence remain separate requirements.

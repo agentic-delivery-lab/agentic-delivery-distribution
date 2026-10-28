@@ -28,11 +28,11 @@ export function validatePluginPackage(manifest) {
     || typeof manifest.description !== 'string' || !manifest.description.trim()
     || !exactKeys(manifest.extensions, [namespace])
     || !exactKeys(projection, ['schemaVersion', 'id', 'status', 'generatedFrom', 'projections'])
-    || projection.schemaVersion !== 1 || projection.id !== manifest.name || projection.status !== 'draft'
+    || projection.schemaVersion !== 1 || projection.id !== manifest.name || !['draft', 'released'].includes(projection.status)
     || !record(projection.generatedFrom)
     || !exactKeys(projection.projections, ['automations'])
     || projection.projections.automations !== 'automations/') {
-    throw new Error('unsupported Agent Plugin package: expected the standard 1.0 draft manual-automation projection');
+    throw new Error('unsupported Agent Plugin package: expected the standard 1.0 manual-automation projection with draft or released status');
   }
   return projection;
 }
@@ -52,7 +52,7 @@ export function validateCapabilitySourceIdentity(lock) {
 export async function validateDistribution(repositoryRoot = root) {
   const errors = [];
   const bundle = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/workflow-bundle.json'), 'utf8'));
-  if (bundle.schemaVersion !== 1 || bundle.status !== 'draft') errors.push('workflow bundle must be schemaVersion 1 draft');
+  if (bundle.schemaVersion !== 1 || !['draft', 'released'].includes(bundle.status)) errors.push('workflow bundle must be schemaVersion 1 with draft or released status');
   if (!/^[0-9a-f]{40}$/.test(bundle.controlPlane?.commit ?? '')) errors.push('control-plane commit must be immutable');
   if (!/^[0-9a-f]{40}$/.test(bundle.architecture?.commit ?? '')) errors.push('architecture commit must be immutable');
   if (!/^[0-9a-f]{64}$/.test(bundle.architecture?.contentSha256 ?? '')) errors.push('architecture content digest must be immutable');
@@ -77,7 +77,7 @@ export async function validateDistribution(repositoryRoot = root) {
     errors.push(`consumer distribution lock schema cannot be read: ${error.message}`);
   }
   const sources = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/sources.lock.json'), 'utf8'));
-  if (sources.schemaVersion !== 1 || sources.status !== 'draft') errors.push('source lock must be schemaVersion 1 draft');
+  if (sources.schemaVersion !== 1 || sources.status !== bundle.status) errors.push('source lock status must match the bundle publication state');
   const validationSources = sources.sources?.filter((source) => source.id === 'source-validation') ?? [];
   if (validationSources.length !== 1 || validationSources[0].kind !== 'git'
     || validationSources[0].repository !== 'agentic-delivery-lab/agentic-delivery'
@@ -88,12 +88,21 @@ export async function validateDistribution(repositoryRoot = root) {
   const unverified = (sources.sources ?? []).filter((source) => source.verified !== true);
   if (sources.status === 'released' && unverified.length > 0) errors.push('released source lock must not contain unverified sources');
   const base = (sources.sources ?? []).find((source) => source.id === 'devcontainer-base-ubuntu-24.04');
-  const baseFiles = [
-    await readFile(path.join(repositoryRoot, '.devcontainer/Dockerfile'), 'utf8'),
-    await readFile(path.join(repositoryRoot, '.devcontainer/devcontainer.json'), 'utf8'),
-  ];
-  if (!base || !base.reference || baseFiles.some((source) => !source.includes(base.reference))) errors.push('devcontainer files must use the locked base-image reference');
-  if (base?.verified === true && !/sha256:[0-9a-f]{64}$/.test(base.digest ?? '')) errors.push('verified base image must have an immutable digest');
+  const dockerfile = await readFile(path.join(repositoryRoot, '.devcontainer/Dockerfile'), 'utf8');
+  const devcontainer = JSON.parse(await readFile(path.join(repositoryRoot, '.devcontainer/devcontainer.json'), 'utf8'));
+  if (!base || base.kind !== 'container-image' || base.reference !== 'mcr.microsoft.com/devcontainers/base:ubuntu-24.04') {
+    errors.push('locked base-image source must identify the supported Ubuntu 24.04 Dev Container image');
+  }
+  if ((base?.verified === true || base?.digest != null)
+    && (typeof base?.digest !== 'string' || !/^sha256:[0-9a-f]{64}$/.test(base.digest))) {
+    errors.push('locked base-image digest must be immutable');
+  }
+  const lockedImage = base?.reference + (base?.digest ? `@${base.digest}` : '');
+  // The supported Dockerfile is one FROM declaration; comments or unrelated
+  // JSON values cannot substitute for the actual image selected by the client.
+  if (dockerfile.trim() !== `FROM ${lockedImage}` || devcontainer.image !== lockedImage) {
+    errors.push('Dev Container image and Dockerfile must use the exact locked base-image reference and digest');
+  }
   const controlPlaneCommit = bundle.controlPlane?.commit;
   const lockedControlPlane = (sources.sources ?? []).find((source) => source.id === 'control-plane');
   if (!lockedControlPlane || lockedControlPlane.commit !== controlPlaneCommit) errors.push('workflow bundle and source lock must pin the same Control Plane commit');
@@ -107,7 +116,7 @@ export async function validateDistribution(repositoryRoot = root) {
     if (capabilities.$schema !== `./capabilities-lock.v${capabilityVersion}.schema.json`
       || capabilitiesSchema.title !== `Agentic Delivery capabilities lock v${capabilityVersion}`) errors.push('capabilities lock must identify its local schema');
   }
-  if (capabilities.status !== 'draft') errors.push('capabilities lock must remain draft before release admission');
+  if (capabilities.status !== bundle.status) errors.push('capabilities lock status must match the bundle publication state');
   if (!/^urn:agentic-delivery:primitive-release:\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(capabilities.primitiveRelease ?? '')) errors.push('capabilities lock primitive release is invalid');
   if (!/^[0-9a-f]{40}$/.test(capabilities.sourceCommit ?? '') || !/^[0-9a-f]{64}$/.test(capabilities.contentSha256 ?? '')) errors.push('capabilities lock must pin Primitive source commit and content digest');
   const lockedPrimitives = (sources.sources ?? []).find((source) => source.id === 'primitives');
@@ -119,6 +128,7 @@ export async function validateDistribution(repositoryRoot = root) {
   const architectureWorkflow = await readFile(path.join(repositoryRoot, 'bootstrap/templates/consumer/.github/workflows/agentic-delivery-architecture-review.yml'), 'utf8');
   errors.push(...workflowProjectionErrors(bundle, consumerWorkflow, architectureWorkflow));
   const plugin = validatePluginPackage(JSON.parse(await readFile(path.join(repositoryRoot, 'packages/agent-plugin/plugin.json'), 'utf8')));
+  if (plugin.status !== bundle.status) errors.push('Agent Plugin status must match the bundle publication state');
   if (!/^[0-9a-f]{40}$/.test(plugin.generatedFrom?.primitiveSourceCommit ?? '')) errors.push('Agent Plugin must pin the Primitive source commit');
   if (!/^[0-9a-f]{40}$/.test(plugin.generatedFrom?.architectureCommit ?? '')) errors.push('Agent Plugin must pin the Architecture commit');
   if (plugin.generatedFrom?.primitiveRelease !== capabilities.primitiveRelease || plugin.generatedFrom?.primitiveSourceCommit !== capabilities.sourceCommit || plugin.generatedFrom?.primitiveContentSha256 !== capabilities.contentSha256) errors.push('Agent Plugin and capabilities lock must pin the same Primitive release and digest');
@@ -127,7 +137,7 @@ export async function validateDistribution(repositoryRoot = root) {
   const automationLock = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/automation-projections.lock.json'), 'utf8'));
   const automationSchema = JSON.parse(await readFile(path.join(repositoryRoot, 'manifests/automation-projections-lock.v1.schema.json'), 'utf8'));
   if (automationSchema.title !== 'Agentic Delivery automation projections lock v1') errors.push('automation projection lock schema is not self-identifying');
-  if (automationLock.schemaVersion !== 1 || !['draft', 'released', 'withdrawn'].includes(automationLock.status)) errors.push('automation projection lock must be schemaVersion 1 with a supported status');
+  if (automationLock.schemaVersion !== 1 || automationLock.status !== bundle.status) errors.push('automation projection lock must be schemaVersion 1 with the bundle publication status');
   if (automationLock.canonicalRepository !== 'agentic-delivery-lab/agentic-delivery') errors.push('automation projection lock canonical repository is invalid');
   if (!SHA1.test(automationLock.sourceCommit ?? '')) errors.push('automation projection lock sourceCommit must be immutable');
   if (automationLock.projectionRepository !== 'agentic-delivery-lab/agentic-delivery-distribution') errors.push('automation projection lock projection repository is invalid');

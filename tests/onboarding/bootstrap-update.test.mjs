@@ -1,3 +1,4 @@
+// Projection/transaction tests use the mechanics layer, not source admission.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFile, spawn } from 'node:child_process';
@@ -7,7 +8,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
-import * as bootstrap from '../../bootstrap/src/bootstrap.mjs';
+import * as bootstrap from '../../bootstrap/src/bootstrap-projection.mjs';
 
 const repositoryRoot = path.resolve(import.meta.dirname, '../..');
 const lockPath = '.agentic-delivery/distribution.lock.json';
@@ -178,7 +179,7 @@ for (const corruption of ['invalid JSON', 'unsupported schema', 'invalid hash', 
   });
 }
 
-test('existing CLI plans and applies a managed update explicitly', async (t) => {
+test('CLI plans a managed update but refuses apply without source admission', async (t) => {
   const state = await fixture(t);
   const run = promisify(execFile);
   const command = (args) => run(process.execPath, [path.join(repositoryRoot, 'bootstrap/src/bootstrap.mjs'), ...args], {
@@ -189,7 +190,9 @@ test('existing CLI plans and applies a managed update explicitly', async (t) => 
   const before = await snapshot(state.targetRoot);
   assert.match((await command(['--plan', '--update'])).stdout, /Planned/);
   assert.deepEqual(await snapshot(state.targetRoot), before);
-  assert.match((await command(['--apply', '--update'])).stdout, /Applied/);
+  await assert.rejects(command(['--apply', '--update']), /source admission/i);
+  assert.deepEqual(await snapshot(state.targetRoot), before);
+  await bootstrap.applyBootstrap({ distributionRoot: state.sourceB, targetRoot: state.targetRoot, update: true });
   assert.deepEqual(await readFile(path.join(state.targetRoot, 'AGENTS.md')), state.nextAgents);
   await assert.rejects(lstat(path.join(state.targetRoot, state.retired.target)), { code: 'ENOENT' });
   await bootstrap.rollbackBootstrap({ targetRoot: state.targetRoot });
@@ -197,7 +200,7 @@ test('existing CLI plans and applies a managed update explicitly', async (t) => 
 });
 
 async function killAfterBoundary({ fixtureName, event, env, operation, options }) {
-  const moduleUrl = pathToFileURL(path.join(repositoryRoot, 'bootstrap/src/bootstrap.mjs')).href;
+  const moduleUrl = pathToFileURL(path.join(repositoryRoot, 'bootstrap/src/bootstrap-projection.mjs')).href;
   const child = spawn(process.execPath, ['--import', path.join(repositoryRoot, 'tests/fixtures', fixtureName), '--input-type=module', '-e',
     `const b = await import(${JSON.stringify(moduleUrl)}); await b[${JSON.stringify(operation)}](${JSON.stringify(options)});`], {
     env: { ...process.env, ...env }, stdio: ['ignore', 'ignore', 'pipe', 'ipc'],

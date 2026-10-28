@@ -1,3 +1,4 @@
+// Projection/transaction tests use the mechanics layer, not source admission.
 import assert from 'node:assert/strict';
 import { execFile, spawn } from 'node:child_process';
 import { appendFile, chmod, cp, lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
@@ -6,7 +7,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import * as bootstrap from '../../bootstrap/src/bootstrap.mjs';
+import * as bootstrap from '../../bootstrap/src/bootstrap-projection.mjs';
 
 const distributionRoot = path.resolve(import.meta.dirname, '../..');
 const lockRelative = '.agentic-delivery/distribution.lock.json';
@@ -84,7 +85,7 @@ function requiredApi(name) {
 test('unsupported filesystem type rejects bootstrap before changing consumer state', async (t) => {
   const state = await fixture(t);
   const before = await snapshot(state.targetRoot);
-  const moduleUrl = pathToFileURL(path.join(distributionRoot, 'bootstrap/src/bootstrap.mjs')).href;
+  const moduleUrl = pathToFileURL(path.join(distributionRoot, 'bootstrap/src/bootstrap-projection.mjs')).href;
   await assert.rejects(promisify(execFile)(process.execPath, [
     '--import', path.join(distributionRoot, 'tests/fixtures/bootstrap-unsupported-filesystem.mjs'), '--input-type=module', '-e',
     `const b = await import(${JSON.stringify(moduleUrl)}); await b.applyBootstrap(${JSON.stringify({ distributionRoot, targetRoot: state.targetRoot, force: true })});`,
@@ -235,7 +236,7 @@ test(`SIGKILL during ${operation} at ${pause} preserves recoverable or completed
   const state = await fixture(t, { priorLock: true });
   const priorState = await snapshot(state.targetRoot);
   if (operation === 'rollbackBootstrap') await bootstrap.applyBootstrap({ distributionRoot, targetRoot: state.targetRoot, force: true });
-  const moduleUrl = pathToFileURL(path.join(distributionRoot, 'bootstrap/src/bootstrap.mjs')).href;
+  const moduleUrl = pathToFileURL(path.join(distributionRoot, 'bootstrap/src/bootstrap-projection.mjs')).href;
   const fixtureName = ['temp-flush', 'partial-write'].includes(pause) ? 'temp-flush' : pause === 'rename' ? 'rename' : 'removal';
   const preload = path.join(distributionRoot, pause === 'journal-append' ? 'tests/fixtures/bootstrap-pause-during-journal-append.mjs' : `tests/fixtures/bootstrap-pause-after-${fixtureName}.mjs`);
   const args = operation === 'applyBootstrap' ? { distributionRoot, targetRoot: state.targetRoot, force: true } : { targetRoot: state.targetRoot };

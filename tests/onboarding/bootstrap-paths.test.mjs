@@ -1,9 +1,10 @@
+// Projection/transaction tests use the mechanics layer, not source admission.
 import assert from 'node:assert/strict';
 import { cp, lstat, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { applyBootstrap, bootstrapPlan } from '../../bootstrap/src/bootstrap.mjs';
+import { applyBootstrap, bootstrapPlan } from '../../bootstrap/src/bootstrap-projection.mjs';
 
 const distributionRoot = path.resolve(import.meta.dirname, '../..');
 

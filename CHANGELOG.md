@@ -10,6 +10,15 @@
 
 ### Fixed
 
+- Bootstrap apply now requires explicit native source admission, exact checkout
+  bytes, accepted canonical ancestry, producer digests/compatible versions and
+  released source/projection records. Force and caller flags cannot approve a
+  draft. Apply uses committed snapshot data; local plans and offline restoration
+  retain their existing transaction formats. The current draft remains held.
+- Consumer workflow validation compares actual fields with selected pins;
+  comments containing the expected SHA no longer conceal a wrong workflow or
+  controller reference.
+
 - Bootstrap refuses missing, duplicate, unverified or mismatched source-lock
   bindings before consumer writes. Each interface must declare the expected
   numeric repository ID and exact bundle commit; force cannot bypass the check.
@@ -27,9 +36,12 @@
   agent, skill and hook placeholders. Validate the publisher's supported subset;
   client loading and release admission remain unproven.
 
-- The draft bundle advances to `0.1.0-draft.25`, pinning Architecture
-  Authority draft8 at `9d4872c39e9c52075a7a299ad4584ac3eb704a1b` and its
-  reproducible content digest; draft24 remains the explicit rollback bundle.
+- Draft bundle `0.1.0-draft.26` selects controller draft67 runtime, Architecture
+  draft78 and Customizations draft15 with reproduced source digests and native
+  repository identities. Reviewed workflow source remains separate from runtime
+  source; Agent Plugin draft7 and byte-exact manual automation projections use
+  the same declared graph. Draft25 remains the prior ownership/rollback input;
+  these metadata updates do not grant install or runtime admission.
 
 - The draft bundle advances to `0.1.0-draft.24`, pinning Control Plane
   `0.2.0-draft.36` at `0ae64cb2b1560e7a9e73435e954e3be8bc3b2b88`; draft23

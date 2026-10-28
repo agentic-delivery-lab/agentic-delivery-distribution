@@ -38,6 +38,14 @@ Organization-agent promotion is a separate PR-producing boundary. Use
 `pnpm agents:promote`; never author an organization agent directly in the
 private publication repository.
 
+The supported bootstrap apply boundary is `bootstrap/src/bootstrap.mjs`.
+Its source checks reuse the exact accepted public Control Plane validator and
+require canonical native source binding and released records before writes.
+`bootstrap-projection.mjs` is transaction mechanics, not admission. Keep
+synthetic mechanics tests separate from supported-entry-point source tests;
+never add a caller flag, callback or test-mode approval bypass. Recovery and
+rollback must remain independent of source availability and admission.
+
 Preview Automation templates follow the same direction: the Control Plane owns
 the canonical `.automation.md` source, this repository owns the reviewed Agent
 Plugin projection and immutable hash lock, and `.github-private` is not an

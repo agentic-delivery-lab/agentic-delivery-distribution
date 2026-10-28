@@ -11,6 +11,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out distribution
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -26,7 +27,37 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: .node-version
+      - name: Check out the accepted public validation tool
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: agentic-delivery-lab/agentic-delivery
+          ref: d81f1d8095802ab06a96555c4f08396545ad05b6
+          path: .native-validation/control-plane
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check out the pinned Architecture source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: agentic-delivery-lab/agentic-delivery-architecture
+          ref: 59df514a3a6dc8a75b79b3fc75fe61aae4e6fdf3
+          path: .native-validation/architecture
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check out the pinned Customizations source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          repository: agentic-delivery-lab/agentic-delivery-agent-customizations
+          ref: 69beab027d8b28fc082fa6054f4def5ba0146e3c
+          path: .native-validation/customizations
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install the pinned validation tool dependencies
+        run: pnpm --dir .native-validation/control-plane install --frozen-lockfile --ignore-scripts
       - name: Validate distribution contracts
         run: pnpm distribution:check
       - name: Run onboarding tests
         run: pnpm test
+        env:
+          BOOTSTRAP_CONTROL_PLANE_ROOT: ${{ github.workspace }}/.native-validation/control-plane
+          BOOTSTRAP_ARCHITECTURE_ROOT: ${{ github.workspace }}/.native-validation/architecture
+          BOOTSTRAP_CUSTOMIZATIONS_ROOT: ${{ github.workspace }}/.native-validation/customizations

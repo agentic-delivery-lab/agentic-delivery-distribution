@@ -6,6 +6,8 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { test } from 'node:test';
 
+import { applyBootstrap as applyProjection } from '../../bootstrap/src/bootstrap-projection.mjs';
+
 const root = path.resolve(import.meta.dirname, '../..');
 const run = promisify(execFile);
 
@@ -25,7 +27,8 @@ async function fixture(t) {
 
 test('existing bootstrap CLI rolls back without requiring the Distribution checkout as an input', async (t) => {
   const { target, command } = await fixture(t);
-  assert.match((await command(['--apply', '--force'])).stdout, /Applied/);
+  // Synthetic installation tests transaction restoration, not release admission.
+  await applyProjection({ distributionRoot: root, targetRoot: target, force: true });
   assert.match((await command(['--rollback'], path.join(target, 'absent-source'))).stdout, /Restored/);
   assert.equal(await readFile(path.join(target, 'AGENTS.md'), 'utf8'), 'Original consumer instructions.\n');
   assert.equal((await lstat(path.join(target, 'AGENTS.md'))).mode & 0o777, 0o600);

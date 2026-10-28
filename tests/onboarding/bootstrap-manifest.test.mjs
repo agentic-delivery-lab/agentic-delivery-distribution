@@ -1,9 +1,10 @@
+// Projection/transaction tests use the mechanics layer, not source admission.
 import assert from 'node:assert/strict';
 import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { applyBootstrap } from '../../bootstrap/src/bootstrap.mjs';
+import { applyBootstrap } from '../../bootstrap/src/bootstrap-projection.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const invalidManifests = [

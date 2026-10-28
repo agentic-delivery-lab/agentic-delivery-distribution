@@ -1,3 +1,4 @@
+// Projection/transaction tests use the mechanics layer, not source admission.
 import assert from 'node:assert/strict';
 import { execFile, spawn } from 'node:child_process';
 import { chmod, cp, mkdir, mkdtemp, lstat, readFile, readdir, rm, writeFile } from 'node:fs/promises';
@@ -5,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { test } from 'node:test';
-import * as bootstrap from '../../bootstrap/src/bootstrap.mjs';
+import * as bootstrap from '../../bootstrap/src/bootstrap-projection.mjs';
 
 const repositoryRoot = path.resolve(import.meta.dirname, '../..');
 const historicalCommit = 'd76e00f51861d8fbae4605a4720192c7de8b659f';

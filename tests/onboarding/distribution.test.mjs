@@ -43,7 +43,9 @@ test('bootstrap manifest is idempotent-contract input, not a control plane', asy
   assert.deepEqual(manifest.architecture.affectedIdentifiers, ['urn:agentic-delivery:architecture:authority']);
   assert.notEqual(manifest.workflowSource.commit, manifest.controlPlane.commit);
   assert.equal(manifest.files.every((file) => file.mode === 'managed'), true);
-  const plugin = JSON.parse(await import('node:fs/promises').then(({ readFile }) => readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8')));
+  const packageManifest = JSON.parse(await readFile(path.join(root, 'packages/agent-plugin/plugin.json'), 'utf8'));
+  assert.equal(packageManifest.$schema, 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json');
+  const plugin = packageManifest.extensions['io.github.agentic-delivery-lab'];
   assert.equal(plugin.generatedFrom.primitiveSourceCommit, '01dc8df9eae5ee8394d05246dbf9ccdcddaa7c9e');
   assert.equal(plugin.generatedFrom.primitiveContentSha256, '36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0');
   assert.equal(plugin.generatedFrom.architectureCommit, '9d4872c39e9c52075a7a299ad4584ac3eb704a1b');

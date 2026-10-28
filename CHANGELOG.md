@@ -22,6 +22,11 @@
 
 ### Changed
 
+- Agent Plugin draft7 uses the standard 1.0 manifest with namespaced factory
+  provenance and only the two real manual automation projections. Retire empty
+  agent, skill and hook placeholders. Validate the publisher's supported subset;
+  client loading and release admission remain unproven.
+
 - The draft bundle advances to `0.1.0-draft.25`, pinning Architecture
   Authority draft8 at `9d4872c39e9c52075a7a299ad4584ac3eb704a1b` and its
   reproducible content digest; draft24 remains the explicit rollback bundle.

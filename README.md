@@ -136,6 +136,15 @@ records the source commit and per-file hashes. The templates are manual and
 read-only; VS Code users choose their local workspace, model, permissions,
 enabled state, and schedule after import.
 
+The draft7 package uses the [Agent Plugins 1.0 manifest](https://agent-plugins.org/schemas/1.0.0/plugin.schema.json).
+Factory provenance resides in `extensions.io.github.agentic-delivery-lab`;
+package name, version and description use standard top-level fields. The current
+publisher validates only its manual-automation subset and rejects undeclared
+fields. The Control Plane release reader retains historical flat metadata
+support. Empty agent, skill and hook scaffolds are retired. Package validation
+does not prove client loading, compatible client versions or release admission;
+those checks remain required before claiming supported installation.
+
 ## Customizations repository-name migration
 
 The staged capabilities lock uses schema version 2 and the explicit source

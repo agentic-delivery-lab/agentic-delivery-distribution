@@ -1,22 +1,26 @@
 {
-  "schemaVersion": 1,
-  "id": "agentic-delivery",
-  "version": "0.1.0-draft.6",
-  "status": "draft",
-  "generatedFrom": {
-    "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
-    "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.4",
-    "primitiveSourceCommit": "01dc8df9eae5ee8394d05246dbf9ccdcddaa7c9e",
-    "primitiveContentSha256": "36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0",
-    "architectureCommit": "9d4872c39e9c52075a7a299ad4584ac3eb704a1b",
-    "architectureContentSha256": "ac4430f7aa86c016c51ea8f9458627d4412d36256960c1bf54b63e851dc2350c",
-    "controlPlaneCommit": "7d38227f7f8d8377ed7cd1b883d90b71b69bfc9b",
-    "automationSourceCommit": "7d38227f7f8d8377ed7cd1b883d90b71b69bfc9b"
-  },
-  "projections": {
-    "agents": "agents/",
-    "skills": "skills/",
-    "automations": "automations/",
-    "hooks": "hooks/"
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agentic-delivery",
+  "version": "0.1.0-draft.7",
+  "description": "Manual read-only delivery review and validation evidence templates.",
+  "extensions": {
+    "io.github.agentic-delivery-lab": {
+      "schemaVersion": 1,
+      "id": "agentic-delivery",
+      "status": "draft",
+      "generatedFrom": {
+        "primitiveRepository": "agentic-delivery-lab/agentic-delivery-primitives",
+        "primitiveRelease": "urn:agentic-delivery:primitive-release:0.1.0-draft.4",
+        "primitiveSourceCommit": "01dc8df9eae5ee8394d05246dbf9ccdcddaa7c9e",
+        "primitiveContentSha256": "36a7e7e95a89ee00288f08a30ac41e4166e11516165e93af47b342026ce894d0",
+        "architectureCommit": "9d4872c39e9c52075a7a299ad4584ac3eb704a1b",
+        "architectureContentSha256": "ac4430f7aa86c016c51ea8f9458627d4412d36256960c1bf54b63e851dc2350c",
+        "controlPlaneCommit": "7d38227f7f8d8377ed7cd1b883d90b71b69bfc9b",
+        "automationSourceCommit": "7d38227f7f8d8377ed7cd1b883d90b71b69bfc9b"
+      },
+      "projections": {
+        "automations": "automations/"
+      }
+    }
   }
 }
